@@ -1,0 +1,23 @@
+# # Database URL for MongoDB
+# DATABASE_URL=""
+
+# # NextAuth
+# NEXTAUTH_SECRET=""
+# NEXTAUTH_URL=""
+# NEXTAUTH_CLIENT_ID=""
+
+# # Cloudinary Configuration (for image uploads)
+# CLOUDINARY_CLOUD_NAME=""
+# CLOUDINARY_API_KEY=""
+# CLOUDINARY_API_SECRET=""
+# CLOUDINARY_URL=""
+
+# # Email configuration (for OTP)
+# EMAIL_HOST=""
+# EMAIL_PORT=""
+# EMAIL_USER=""
+# EMAIL_PASS=""
+
+# # App configuration
+# APP_NAME=""
+# APP_URL=""
