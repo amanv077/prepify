@@ -1,8 +1,33 @@
+'use client'
+
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ButtonLoader } from '@/components/ui/loader'
+import { showToast } from '@/components/ui/toaster'
 import { Mail, Phone, MapPin, Clock, MessageSquare, Users, Building, Headphones } from "lucide-react";
 
 export default function ContactPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+      // Simulate form submission
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
+      showToast.success('Message sent successfully! We\'ll get back to you soon.')
+      
+      // Reset form
+      const form = e.target as HTMLFormElement
+      form.reset()
+    } catch (error) {
+      showToast.error('Failed to send message. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const contactMethods = [
     {
       icon: <Mail className="h-6 w-6 text-blue-600" />,
@@ -146,9 +171,8 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <Card className="border-gray-200">
-            <CardContent className="p-8">
-              <form className="space-y-6">
+          <Card className="border-gray-200">            <CardContent className="p-8">
+              <form onSubmit={handleFormSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -247,10 +271,20 @@ export default function ContactPage() {
                   <label htmlFor="newsletter" className="ml-2 text-sm text-gray-700">
                     I'd like to receive updates about Prepify's products and features
                   </label>
-                </div>
-
-                <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
-                  Send Message
+                </div>                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <ButtonLoader size="sm" />
+                      <span className="ml-2">Sending...</span>
+                    </>
+                  ) : (
+                    'Send Message'
+                  )}
                 </Button>
               </form>
             </CardContent>

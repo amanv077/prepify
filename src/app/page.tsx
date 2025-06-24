@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Loader from '@/components/ui/loader'
 import { 
   Brain, 
   Users, 
@@ -136,10 +137,7 @@ export default function Home() {
               </p>
               
               {status === 'loading' ? (
-                <div className="flex items-center space-x-4">
-                  <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-gray-600">Loading...</span>
-                </div>
+                <Loader size="md" text="Loading your dashboard..." />
               ) : session ? (
                 <div className="space-y-4">
                   <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">

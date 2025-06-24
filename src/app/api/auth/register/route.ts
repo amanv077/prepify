@@ -76,8 +76,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       message: 'User registered successfully. Please check your email for verification code.',
       userId: user._id
-    })
-  } catch (error) {
+    })  } catch (error) {
     console.error('Registration error:', error)
     
     // More detailed error logging
@@ -86,8 +85,19 @@ export async function POST(req: NextRequest) {
       console.error('Error stack:', error.stack)
     }
 
-    // Check for MongoDB connection errors
-    if (error instanceof Error && error.message.includes('ENOTFOUND')) {
+    // Check for MongoDB Atlas connection errors
+    if (error instanceof Error && error.message.includes('Could not connect to any servers')) {
+      return NextResponse.json(
+        { 
+          error: 'Database temporarily unavailable',
+          message: 'Please try again in a few moments. If the problem persists, contact support.',
+        },
+        { status: 503 }
+      )
+    }
+
+    // Check for general MongoDB connection errors
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('MongooseServerSelectionError'))) {
       return NextResponse.json(
         { 
           error: 'Database connection failed',
@@ -100,6 +110,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Internal server error',
+        message: 'Something went wrong. Please try again later.',
         details: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined
       },
       { status: 500 }

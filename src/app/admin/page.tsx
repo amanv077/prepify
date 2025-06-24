@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { FullPageLoader } from '@/components/ui/loader'
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession()
@@ -16,13 +17,8 @@ export default function AdminDashboard() {
       router.push('/dashboard')
     }
   }, [status, session, router])
-
   if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
+    return <FullPageLoader text="Loading admin dashboard..." />
   }
 
   if (!session || session.user.role !== 'ADMIN') {

@@ -5,31 +5,28 @@ import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { ButtonLoader } from '@/components/ui/loader'
+import { showToast } from '@/components/ui/toaster'
 
-export default function LoginPage() {
-  const [formData, setFormData] = useState({
+export default function LoginPage() {  const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError('')
 
-    try {
-      const result = await signIn('credentials', {
+    try {      const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: false,
       })
 
       if (result?.error) {
-        setError('Invalid email or password')
+        showToast.error('Invalid email or password')
         return
       }
 
@@ -50,7 +47,7 @@ export default function LoginPage() {
         router.push('/dashboard')
       }
     } catch (error) {
-      setError('An error occurred. Please try again.')
+      showToast.error('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -131,20 +128,7 @@ export default function LoginPage() {
                     <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                   )}
                 </button>
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <div className="flex">
-                  <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="ml-2 text-sm text-red-600">{error}</p>
-                </div>
-              </div>
-            )}
+              </div>            </div>
 
             {/* Submit Button */}
             <button
@@ -154,11 +138,8 @@ export default function LoginPage() {
             >
               {isLoading ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing in...
+                  <ButtonLoader size="sm" />
+                  <span className="ml-2">Signing in...</span>
                 </>
               ) : (
                 'Sign In'

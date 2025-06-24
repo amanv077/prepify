@@ -3,13 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { ButtonLoader } from '@/components/ui/loader'
+import { showToast } from '@/components/ui/toaster'
 
-export default function VerifyEmailPage() {
-  const [otp, setOtp] = useState('')
+export default function VerifyEmailPage() {  const [otp, setOtp] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
   const [resendLoading, setResendLoading] = useState(false)
   
   const router = useRouter()
@@ -21,12 +20,9 @@ export default function VerifyEmailPage() {
       setEmail(emailParam)
     }
   }, [searchParams])
-
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setMessage('')
-    setError('')
 
     try {
       const response = await fetch('/api/auth/verify-otp', {
@@ -40,29 +36,26 @@ export default function VerifyEmailPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setMessage(data.message)
+        showToast.success(data.message)
         // Redirect to login page after 2 seconds
         setTimeout(() => {
           router.push('/login')
         }, 2000)
       } else {
         if (data.setupUrl) {
-          setError(`${data.message} You can try running the setup at: ${data.setupUrl}`)
+          showToast.error(`${data.message} You can try running the setup at: ${data.setupUrl}`)
         } else {
-          setError(data.error || 'Verification failed')
+          showToast.error(data.error || 'Verification failed')
         }
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      showToast.error('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
   }
-
   const handleResend = async () => {
     setResendLoading(true)
-    setMessage('')
-    setError('')
 
     try {
       const response = await fetch('/api/auth/resend-otp', {
@@ -76,16 +69,16 @@ export default function VerifyEmailPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setMessage(data.message)
+        showToast.success(data.message)
       } else {
         if (data.setupUrl) {
-          setError(`${data.message} You can try running the setup at: ${data.setupUrl}`)
+          showToast.error(`${data.message} You can try running the setup at: ${data.setupUrl}`)
         } else {
-          setError(data.error || 'Failed to resend verification code')
+          showToast.error(data.error || 'Failed to resend verification code')
         }
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      showToast.error('Network error. Please try again.')
     } finally {
       setResendLoading(false)
     }
@@ -135,20 +128,7 @@ export default function VerifyEmailPage() {
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               maxLength={6}
-            />
-          </div>
-
-          {error && (
-            <div className="text-red-600 text-sm text-center">
-              {error}
-            </div>
-          )}
-          
-          {message && (
-            <div className="text-green-600 text-sm text-center">
-              {message}
-            </div>
-          )}
+            />          </div>
 
           <div className="space-y-4">
             <button
@@ -156,7 +136,14 @@ export default function VerifyEmailPage() {
               disabled={loading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Verifying...' : 'Verify Email'}
+              {loading ? (
+                <>
+                  <ButtonLoader size="sm" />
+                  <span className="ml-2">Verifying...</span>
+                </>
+              ) : (
+                'Verify Email'
+              )}
             </button>
 
             <button
@@ -165,7 +152,14 @@ export default function VerifyEmailPage() {
               disabled={resendLoading || !email}
               className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {resendLoading ? 'Sending...' : 'Resend Code'}
+              {resendLoading ? (
+                <>
+                  <ButtonLoader size="sm" />
+                  <span className="ml-2">Sending...</span>
+                </>
+              ) : (
+                'Resend Code'
+              )}
             </button>
           </div>
 

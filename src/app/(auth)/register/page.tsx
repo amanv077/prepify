@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { showToast } from '@/components/ui/toaster'
+import { ButtonLoader } from '@/components/ui/loader'
 
 interface PasswordStrength {
   score: number
@@ -14,14 +16,11 @@ interface PasswordStrength {
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    password: '',
+    email: '',    password: '',
     confirmPassword: '',
     role: 'USER'
   })
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
@@ -52,26 +51,21 @@ export default function RegisterPage() {
 
   const passwordStrength = getPasswordStrength(formData.password)
   const passwordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword !== ''
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setMessage('')
-    setError('')
-
-    // Validate passwords match
+    setLoading(true)    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      showToast.error('Passwords do not match')
       setLoading(false)
       return
     }
 
     // Validate password strength
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long')
+      showToast.error('Password must be at least 8 characters long')
       setLoading(false)
       return
-    }
+    }    const loadingToast = showToast.loading('Creating your account...')
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -89,17 +83,22 @@ export default function RegisterPage() {
 
       const data = await response.json()
 
+      // Always dismiss loading toast first
+      showToast.dismiss(loadingToast)
+
       if (response.ok) {
-        setMessage(data.message)
+        showToast.interviewSuccess('Account created successfully! Check your email for verification.')
         // Redirect to verification page after 2 seconds
         setTimeout(() => {
           router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`)
         }, 2000)
       } else {
-        setError(data.error || 'Registration failed')
+        showToast.error(data.error || 'Registration failed')
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      // Always dismiss loading toast first
+      showToast.dismiss(loadingToast)
+      showToast.error('Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
@@ -374,78 +373,19 @@ export default function RegisterPage() {
                 <p className="mt-1 text-xs text-red-600">
                   Passwords do not match
                 </p>
-              )}
-            </div>            {/* Error/Success Messages */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-2">
-                <div className="flex">
-                  <svg
-                    className="h-4 w-4 text-red-400 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p className="ml-2 text-xs text-red-600">{error}</p>
-                </div>
-              </div>
-            )}
-            {message && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-2">
-                <div className="flex">
-                  <svg
-                    className="h-4 w-4 text-green-400 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p className="ml-2 text-xs text-green-600">{message}</p>
-                </div>
-              </div>
-            )}            {/* Submit Button */}{" "}
+              )}            </div>
+
+            {/* Submit Button */}{" "}
             <button
               type="submit"
               disabled={
                 loading || !passwordsMatch || formData.password.length < 8
               }
-              className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center text-sm"
-            >
+              className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center text-sm"            >
               {loading ? (
                 <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating...
+                  <ButtonLoader size="sm" />
+                  <span className="ml-2">Creating...</span>
                 </>
               ) : (
                 "Create Account"
