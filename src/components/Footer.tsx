@@ -1,81 +1,175 @@
-export default function Footer() {
-  return (
-    <footer className="bg-white border-t border-gray-200">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Company Info */}          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Prepify</h3>
-            <p className="text-gray-600 text-sm">
-              A platform to make you interview ready. Practice, prepare, and ace your interviews.
-            </p>
-          </div>
+import Link from 'next/link'
+import { Mail, Phone, MapPin, Twitter, Linkedin, Github } from 'lucide-react'
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="/about" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="/contact" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Contact
-                </a>
-              </li>
-              <li>
-                <a href="/privacy" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="/terms" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Terms of Service
-                </a>
-              </li>
-            </ul>
-          </div>
+export default function Footer() {  return (
+    <footer className="bg-gray-50 border-t border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main footer content */}
+        <div className="py-12 lg:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+            {/* Brand section */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">P</span>
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                  Prepify
+                </span>
+              </div>
+              <p className="text-gray-600 text-sm mb-6 max-w-sm">
+                AI-powered interview preparation platform helping candidates and students 
+                excel in their career journey with personalized training and expert guidance.
+              </p>
+              
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Mail className="w-4 h-4 mr-2 text-blue-600" />
+                  support@prepify.com
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Phone className="w-4 h-4 mr-2 text-blue-600" />
+                  +1 (555) 123-4567
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <MapPin className="w-4 h-4 mr-2 text-blue-600" />
+                  San Francisco, CA
+                </div>
+              </div>
+            </div>
 
-          {/* Contact Info */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Support</h3>
-            <ul className="space-y-2">              <li className="text-gray-600 text-sm">
-                Email: support@prepify.com
-              </li>
-              <li className="text-gray-600 text-sm">
-                Help Center
-              </li>
-              <li className="text-gray-600 text-sm">
-                Documentation
-              </li>
-            </ul>
+            {/* Company */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Company</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/about" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/careers" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Careers
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Contact
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Blog
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Product */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Product</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/features" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/integrations" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Integrations
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/api" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    API
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Resources */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Resources</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/help" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/tutorials" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Tutorials
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/community" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Community
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/status" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Status
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Legal</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/privacy" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/security" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Security
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cookies" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Cookie Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center">            <p className="text-gray-600 text-sm">
-              © {new Date().getFullYear()} Prepify. All rights reserved.
-            </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors">
-                <span className="sr-only">Facebook</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M20 10C20 4.477 15.523 0 10 0S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z" clipRule="evenodd" />
-                </svg>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors">
-                <span className="sr-only">Twitter</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84" />
-                </svg>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors">
-                <span className="sr-only">GitHub</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clipRule="evenodd" />
-                </svg>
-              </a>
+        {/* Bottom footer */}
+        <div className="border-t border-gray-200 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="flex items-center space-x-4">
+              <p className="text-sm text-gray-600">
+                © {new Date().getFullYear()} Prepify. All rights reserved.
+              </p>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">Follow us</span>
+              <div className="flex space-x-3">
+                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors" aria-label="Twitter">
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors" aria-label="LinkedIn">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors" aria-label="GitHub">
+                  <Github className="w-5 h-5" />
+                </a>
+              </div>
             </div>
           </div>
         </div>

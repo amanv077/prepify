@@ -3,10 +3,13 @@
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Menu, X, User, LogOut, ChevronDown } from 'lucide-react'
 
 export default function Navbar() {
   const { data: session, status } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   const getDashboardLink = () => {
     if (!session?.user?.role) return '/dashboard'
@@ -21,71 +24,102 @@ export default function Navbar() {
     }
   }
 
+  const navLinks = [
+    { href: '/about', label: 'About' },
+    { href: '/careers', label: 'Careers' },
+    { href: '/contact', label: 'Contact' },
+  ]
+
   return (
-    <nav className="bg-white shadow-md border-b border-gray-200">
+    <nav className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">            <Link href="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-              Prepify
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center space-x-2 group cursor-pointer">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+                <span className="text-white font-bold text-sm">P</span>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                Prepify
+              </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (              <Link
+                key={link.href}
+                href={link.href}
+                className="text-gray-600 hover:text-blue-600 font-medium transition-colors relative group cursor-pointer"
+              >
+                {link.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
             {status === 'loading' ? (
               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             ) : session ? (
-              <>
-                <Link
-                  href={getDashboardLink()}
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              <div className="relative">                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-2 transition-colors cursor-pointer"
                 >
-                  Dashboard
-                </Link>
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-700">
-                    Welcome, {session.user.name}
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">
+                    {session.user.name}
                   </span>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
-                    {session.user.role}
-                  </span>
-                  <button
-                    onClick={() => signOut({ callbackUrl: '/' })}
-                    className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </>            ) : (              <div className="flex items-center space-x-2">
-                <Link
-                  href="/login"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Login
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1">                    <Link
+                      href={getDashboardLink()}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>                    <button
+                      onClick={() => {
+                        signOut()
+                        setIsUserMenuOpen(false)
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
                 </Link>
-                <Link
-                  href="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Register
+                <Link href="/register">
+                  <Button size="sm">
+                    Get Started
+                  </Button>
                 </Link>
               </div>
             )}
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button
+          <div className="md:hidden">            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600"
+              className="p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
@@ -93,47 +127,51 @@ export default function Navbar() {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
-              {session ? (
-                <>
-                  <Link
+            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-100">
+              {navLinks.map((link) => (                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors cursor-pointer"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              
+              {status === 'loading' ? (
+                <div className="px-3 py-2">
+                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : session ? (
+                <div className="border-t border-gray-100 pt-2 mt-2">                  <Link
                     href={getDashboardLink()}
-                    className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+                    className="block px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors cursor-pointer"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
-                  </Link>
-                  <div className="px-3 py-2 text-sm text-gray-700">
-                    Welcome, {session.user.name}
-                    <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
-                      {session.user.role}
-                    </span>
-                  </div>
-                  <button
+                  </Link>                  <button
                     onClick={() => {
-                      signOut({ callbackUrl: '/' })
+                      signOut()
                       setIsMenuOpen(false)
                     }}
-                    className="w-full text-left text-red-600 hover:text-red-700 block px-3 py-2 rounded-md text-base font-medium"
+                    className="block w-full text-left px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors cursor-pointer"
                   >
                     Sign Out
                   </button>
-                </>              ) : (                <>
-                  <Link
-                    href="/login"
-                    className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Login
+                </div>
+              ) : (
+                <div className="border-t border-gray-100 pt-2 mt-2 space-y-2">
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start">
+                      Sign In
+                    </Button>
                   </Link>
-                  <Link
-                    href="/register"
-                    className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Register
+                  <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                    <Button size="sm" className="w-full">
+                      Get Started
+                    </Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -142,3 +180,5 @@ export default function Navbar() {
     </nav>
   )
 }
+
+
