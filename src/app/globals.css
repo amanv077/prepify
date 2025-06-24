@@ -18,6 +18,23 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Global heading visibility improvements */
+h1, h2, h3, h4, h5, h6 {
+  color: #111827; /* text-gray-900 equivalent */
+}
+
+/* Ensure card titles and important text are dark */
+.card-title,
+[class*="CardTitle"],
+[class*="font-semibold"]:not([class*="text-"]) {
+  color: #111827 !important;
+}
+
+/* Override any light text that might be hard to read */
+.text-light-override {
+  color: #374151 !important; /* text-gray-700 */
+}
+
 /* Custom animations for toaster */
 @keyframes enter {
   0% {

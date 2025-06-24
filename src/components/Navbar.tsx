@@ -26,10 +26,11 @@ export default function Navbar() {
         return '/dashboard'
     }
   }
-
   const navLinks = [
     { href: '/about', label: 'About' },
-    { href: '/careers', label: 'Careers' },
+    { href: '/programs', label: 'Programs' },
+    { href: '/success-stories', label: 'Success Stories' },
+    { href: '/pricing', label: 'Pricing' },
     { href: '/contact', label: 'Contact' },
   ]
 
