@@ -7,18 +7,15 @@ export interface ISession extends Document {
   expires: Date
 }
 
-const SessionSchema = new Schema<ISession>({
-  sessionToken: {
+const SessionSchema = new Schema<ISession>({  sessionToken: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  },
-  expires: {
+  },  expires: {
     type: Date,
     required: true
   }
@@ -30,6 +27,6 @@ const SessionSchema = new Schema<ISession>({
 // Indexes
 SessionSchema.index({ sessionToken: 1 }, { unique: true })
 SessionSchema.index({ userId: 1 })
-SessionSchema.index({ expires: 1 }, { expireAfterSeconds: 0 })
+SessionSchema.index({ expires: 1 })
 
 export default mongoose.models.Session || mongoose.model<ISession>('Session', SessionSchema)

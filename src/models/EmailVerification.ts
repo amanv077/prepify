@@ -25,11 +25,9 @@ const EmailVerificationSchema = new Schema<IEmailVerification>({
     type: String,
     enum: ['PENDING', 'VERIFIED', 'FAILED'],
     default: 'PENDING'
-  },
-  expiresAt: {
+  },  expiresAt: {
     type: Date,
-    required: true,
-    index: { expireAfterSeconds: 0 } // MongoDB TTL index to auto-delete expired documents
+    required: true
   },
   userId: {
     type: Schema.Types.ObjectId,
