@@ -173,6 +173,13 @@ export default function AdminDashboard() {
                   </Button>
 
                   <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                    <Link href="/admin/debug">
+                      <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                      <span className="text-sm">Debug Tools</span>
+                    </Link>
+                  </Button>
+
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
                     <Link href="/admin/support">
                       <MessageSquare className="h-6 w-6 text-orange-600" />
                       <span className="text-sm">Support Tickets</span>

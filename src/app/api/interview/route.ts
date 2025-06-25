@@ -21,9 +21,22 @@ export async function POST(req: NextRequest) {
     // Generate unique interview ID
     const interviewId = `interview_${uuidv4()}`
 
+    // Get the next session number for this user
+    const lastSession = await InterviewSession.findOne(
+      { userId: session.user.id },
+      {},
+      { sort: { sessionNumber: -1 } }
+    )
+    const nextSessionNumber = (lastSession?.sessionNumber || 0) + 1
+
+    // Create session title
+    const sessionTitle = `Interview Session #${nextSessionNumber}`
+
     const interviewSession = new InterviewSession({
       userId: session.user.id,
       interviewId,
+      sessionNumber: nextSessionNumber,
+      sessionTitle,
       preparationData,
       difficulty: difficulty || 'starter',
       status: 'preparation',

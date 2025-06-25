@@ -43,6 +43,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   showFeedback = false,
   isLastQuestion = false
 }) => {
+  const isAlreadyAnswered = question.answer && question.answer.trim() !== ''
+  const shouldShowReadOnly = isAlreadyAnswered && !showFeedback
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
       case 'starter': return 'text-green-600 bg-green-100'
@@ -87,8 +89,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             </p>
           </div>
 
-          {!showFeedback ? (
-            /* Answer Input */
+          {!showFeedback && !shouldShowReadOnly ? (
+            /* Answer Input - Active */
             <div className="space-y-4">
               <div>
                 <label htmlFor="answer" className="block text-sm font-medium text-gray-700 mb-2">
@@ -128,6 +130,26 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                     </>
                   )}
                 </Button>
+              </div>
+            </div>
+          ) : shouldShowReadOnly ? (
+            /* Already Answered - Read Only */
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  Your Answer (Submitted):
+                </h4>
+                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
+                  <p className="text-gray-900 whitespace-pre-wrap">{question.answer}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-center py-4">
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                  <span className="text-sm font-medium">Answer submitted, processing feedback...</span>
+                </div>
               </div>
             </div>
           ) : (

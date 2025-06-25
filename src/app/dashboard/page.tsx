@@ -221,6 +221,18 @@ export default function UserDashboard() {
                       </div>
                     </Link>
                   </Button>
+
+                  <Button asChild variant="outline" className="h-auto p-6 flex flex-col items-start space-y-2">
+                    <Link href="/interview-summaries">
+                      <TrendingUp className="h-8 w-8 text-blue-600" />
+                      <div className="text-left">
+                        <h3 className="font-semibold">View Summaries</h3>
+                        <p className="text-sm text-gray-600">
+                          Review past interviews
+                        </p>
+                      </div>
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>

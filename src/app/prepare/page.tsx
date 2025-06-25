@@ -36,6 +36,9 @@ interface InterviewSession {
   isCompleted: boolean
   currentLevel: number
   totalScore: number
+  overallScore?: number
+  sessionNumber?: number
+  sessionTitle?: string
 }
 
 export default function PreparePage() {
@@ -45,6 +48,7 @@ export default function PreparePage() {
   const [existingSessions, setExistingSessions] = useState<InterviewSession[]>([])
   const [loading, setLoading] = useState(true)
   const [startingInterview, setStartingInterview] = useState(false)
+  const [showMigrationButton, setShowMigrationButton] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -97,6 +101,25 @@ export default function PreparePage() {
     }
   }, [session, status])
 
+  // Check if migration is needed
+  useEffect(() => {
+    const checkMigration = async () => {
+      try {
+        const response = await fetch('/api/interview/migrate')
+        if (response.ok) {
+          const data = await response.json()
+          setShowMigrationButton(data.sessionsNeedingMigration > 0)
+        }
+      } catch (error) {
+        console.error('Error checking migration status:', error)
+      }
+    }
+    
+    if (status === 'authenticated') {
+      checkMigration()
+    }
+  }, [status])
+
   const handleStartInterview = async () => {
     if (!interviewPrep) return
 
@@ -136,6 +159,26 @@ export default function PreparePage() {
     }
   }
 
+  const runMigration = async () => {
+    try {
+      const response = await fetch('/api/interview/migrate', {
+        method: 'POST',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        alert(`Migration successful! Updated ${data.updatedCount} sessions.`)
+        setShowMigrationButton(false)
+        // Refresh the page to see updated session numbers
+        window.location.reload()
+      } else {
+        alert('Migration failed. Please check the console for errors.')
+      }
+    } catch (error) {
+      console.error('Migration error:', error)
+      alert('Migration failed. Please check the console for errors.')
+    }
+  }
+
   if (status === 'loading' || loading) {
     return <FullPageLoader text="Loading interview preparation..." />
   }
@@ -155,6 +198,17 @@ export default function PreparePage() {
                 Back to Dashboard
               </Link>
             </Button>
+            
+            {showMigrationButton && (
+              <Button 
+                onClick={runMigration} 
+                variant="outline" 
+                size="sm" 
+                className="mb-4 ml-4"
+              >
+                Fix Session Numbers
+              </Button>
+            )}
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Interview Preparation</h1>
             <p className="text-gray-600">You need to set up your interview preparation first.</p>
           </div>
@@ -208,6 +262,18 @@ export default function PreparePage() {
               Back to Dashboard
             </Link>
           </Button>
+          
+          {showMigrationButton && (
+            <Button 
+              onClick={runMigration} 
+              variant="outline" 
+              size="sm" 
+              className="mb-4 ml-4"
+            >
+              Fix Session Numbers
+            </Button>
+          )}
+          
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Interview Preparation</h1>
           <p className="text-gray-600">Review your preparation data and start your interview practice.</p>
           
@@ -339,17 +405,28 @@ export default function PreparePage() {
                   {existingSessions.map((session) => (
                     <div
                       key={session._id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
+                      className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow"
                     >
                       <div>
-                        <p className="font-medium">
-                          {session.isCompleted ? 'Completed' : 'In Progress'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Level: {session.currentLevel}/5 • Score: {session.totalScore}%
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="font-medium text-gray-900">
+                            {session.sessionTitle || `Interview Session #${session.sessionNumber || '1'}`}
+                          </h4>
+                          <p className={`font-semibold px-2 py-1 rounded-full text-xs ${
+                            session.isCompleted 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {session.isCompleted ? 'Completed' : 'In Progress'}
+                          </p>
+                        </div>
+                        <p className="text-sm text-gray-700 font-medium">
+                          Level: {session.currentLevel}/5 • Score: {
+                            session.totalScore || session.overallScore || 0
+                          }%
                         </p>
                         <p className="text-xs text-gray-500">
-                          {new Date(session.createdAt).toLocaleDateString()}
+                          Created: {new Date(session.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -358,7 +435,7 @@ export default function PreparePage() {
                         )}
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/prepare/interview/${session.interviewId}`}>
-                            {session.isCompleted ? 'View' : 'Continue'}
+                            {session.isCompleted ? 'View Results' : 'Continue'}
                           </Link>
                         </Button>
                       </div>

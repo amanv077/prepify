@@ -11,6 +11,16 @@ const InterviewSessionSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  sessionNumber: {
+    type: Number,
+    required: true
+  },
+  sessionTitle: {
+    type: String,
+    default: function(this: any) {
+      return `Interview Session #${this.sessionNumber}`
+    }
+  },
   preparationData: {
     jobTitle: String,
     company: String,

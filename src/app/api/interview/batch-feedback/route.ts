@@ -63,12 +63,13 @@ export async function POST(req: NextRequest) {
     let totalScore = 0
     batchFeedbackResponse.results.forEach((result, index) => {
       if (interviewSession.levels[levelIndex].questions[index]) {
-        interviewSession.levels[levelIndex].questions[index].feedback = result.feedback
-        interviewSession.levels[levelIndex].questions[index].score = result.score
-        interviewSession.levels[levelIndex].questions[index].correctAnswer = result.correctAnswer
-        interviewSession.levels[levelIndex].questions[index].suggestions = result.suggestions
-        interviewSession.levels[levelIndex].questions[index].topicsToRevise = result.topicsToRevise
-        interviewSession.levels[levelIndex].questions[index].answeredAt = new Date()
+        const question = interviewSession.levels[levelIndex].questions[index]
+        question.feedback = result.feedback
+        question.score = result.score
+        question.correctAnswer = result.correctAnswer
+        question.suggestions = result.suggestions
+        question.topicsToRevise = result.topicsToRevise
+        question.answeredAt = new Date()
         totalScore += result.score
       }
     })
@@ -78,26 +79,26 @@ export async function POST(req: NextRequest) {
     interviewSession.levels[levelIndex].averageScore = averageScore
     interviewSession.levels[levelIndex].completedAt = new Date()
 
-    // Check if can advance to next level (average score >= 6)
+    // Update overall interview scores
+    const completedLevels = interviewSession.levels.filter((l: any) => l.averageScore > 0)
+    if (completedLevels.length > 0) {
+      const overallTotal = completedLevels.reduce((sum: number, l: any) => sum + l.averageScore, 0)
+      interviewSession.totalScore = overallTotal / completedLevels.length
+      interviewSession.overallScore = interviewSession.totalScore
+    }
+
+    // Check if user can advance to next level (average score >= 60)
     let canAdvance = false
     let interviewCompleted = false
 
-    if (averageScore >= 6 && levelNumber < 5) {
+    if (averageScore >= 60 && levelNumber < 5) {
       canAdvance = true
-      // Advance to next level
-      interviewSession.currentLevel = levelNumber + 1
+      // Don't automatically advance level here - let frontend manage level progression
     } else if (levelNumber >= 5) {
       // Interview completed
       interviewSession.status = 'completed'
       interviewSession.completedAt = new Date()
       interviewCompleted = true
-      
-      // Calculate overall score
-      const allLevels = interviewSession.levels.filter((l: any) => l.averageScore > 0)
-      if (allLevels.length > 0) {
-        const totalScore = allLevels.reduce((sum: number, l: any) => sum + l.averageScore, 0)
-        interviewSession.overallScore = totalScore / allLevels.length
-      }
     }
 
     await interviewSession.save()

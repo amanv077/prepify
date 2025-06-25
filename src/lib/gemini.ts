@@ -186,9 +186,71 @@ Only JSON response.`
         question: parsed.question,
         questionId: parsed.questionId || `q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating question:', error)
-      throw new Error('Failed to generate interview question')
+      
+      // Check if it's a rate limiting error
+      if (error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')) {
+        // Return a fallback question for rate limiting
+        return this.getFallbackQuestion(context)
+      }
+      
+      // Check if it's a network/API error
+      if (error.message?.includes('fetch') || error.message?.includes('network')) {
+        return this.getFallbackQuestion(context)
+      }
+      
+      throw new Error(`Failed to generate interview question: ${error.message}`)
+    }
+  }
+
+  private getFallbackQuestion(context: InterviewContext): QuestionResponse {
+    const fallbackQuestions = {
+      1: [
+        "Can you tell me about yourself and your experience with web development?",
+        "What interests you most about frontend development?",
+        "How do you stay updated with the latest web technologies?",
+        "Can you explain the difference between HTML, CSS, and JavaScript?",
+        "What is your experience with version control systems like Git?"
+      ],
+      2: [
+        "Explain the concept of responsive web design and how you implement it.",
+        "What are the key differences between React class components and functional components?",
+        "How do you handle state management in React applications?",
+        "Can you explain the CSS box model?",
+        "What is the Virtual DOM and how does it work in React?"
+      ],
+      3: [
+        "How would you optimize the performance of a React application?",
+        "Explain the concept of hoisting in JavaScript.",
+        "What are React Hooks and how do they work?",
+        "How do you handle API calls in React applications?",
+        "Can you explain the difference between synchronous and asynchronous JavaScript?"
+      ],
+      4: [
+        "Design a scalable architecture for a large React application.",
+        "How would you implement authentication in a Next.js application?",
+        "Explain the differences between server-side rendering and client-side rendering.",
+        "How do you handle error boundaries in React?",
+        "What are some advanced React patterns you've used?"
+      ],
+      5: [
+        "How would you approach performance optimization for a complex web application?",
+        "Design a system for handling real-time data updates in a React application.",
+        "Explain your approach to testing React components and applications.",
+        "How would you implement a custom React Hook for complex state management?",
+        "Describe your approach to code splitting and lazy loading in large applications."
+      ]
+    }
+
+    const levelQuestions = fallbackQuestions[context.currentLevel as keyof typeof fallbackQuestions] || fallbackQuestions[1]
+    const randomQuestion = levelQuestions[Math.floor(Math.random() * levelQuestions.length)]
+    
+    console.log(`Using fallback question for level ${context.currentLevel}: ${randomQuestion}`)
+    
+    return {
+      question: randomQuestion,
+      questionId: `fallback_q_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     }
   }
 
@@ -213,10 +275,96 @@ Only JSON response.`
         correctAnswer: parsed.correctAnswer || 'No correct answer provided',
         topicsToRevise: parsed.topicsToRevise || []
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating feedback:', error)
-      throw new Error('Failed to generate feedback')
+      
+      // Check if it's a rate limiting error or API error
+      if (error.message?.includes('429') || error.message?.includes('quota') || 
+          error.message?.includes('rate limit') || error.message?.includes('fetch')) {
+        return this.getFallbackFeedback(question, answer, context)
+      }
+      
+      throw new Error(`Failed to generate feedback: ${error.message}`)
     }
+  }
+
+  private getFallbackFeedback(question: string, answer: string, context: InterviewContext): FeedbackResponse {
+    // Simple fallback feedback based on answer length and content
+    const answerLength = answer.trim().length
+    let score = 5 // Default middle score
+    let feedback = "Thank you for your response. "
+    
+    if (answerLength === 0) {
+      score = 1
+      feedback += "Please provide an answer to continue with the interview."
+    } else if (answerLength < 50) {
+      score = 3
+      feedback += "Your answer is quite brief. Try to provide more detailed explanations with examples."
+    } else if (answerLength < 200) {
+      score = 6
+      feedback += "Good response! Consider adding more specific details or examples to strengthen your answer."
+    } else {
+      score = 7
+      feedback += "Comprehensive response! You've provided good detail in your answer."
+    }
+    
+    // Add level-specific suggestions
+    const suggestions = this.getFallbackSuggestions(context.currentLevel)
+    const topicsToRevise = this.getFallbackTopics(context.currentLevel)
+    
+    console.log(`Using fallback feedback for level ${context.currentLevel}`)
+    
+    return {
+      feedback,
+      score,
+      suggestions,
+      correctAnswer: "Please refer to documentation and best practices for detailed answers.",
+      topicsToRevise
+    }
+  }
+
+  private getFallbackSuggestions(level: number): string[] {
+    const suggestions = {
+      1: [
+        "Practice explaining basic concepts clearly",
+        "Review fundamental web development principles",
+        "Prepare examples from your experience"
+      ],
+      2: [
+        "Study React component lifecycle and hooks",
+        "Practice explaining technical concepts with examples",
+        "Review CSS and responsive design principles"
+      ],
+      3: [
+        "Focus on performance optimization techniques",
+        "Practice problem-solving approaches",
+        "Review advanced JavaScript concepts"
+      ],
+      4: [
+        "Study system design principles",
+        "Practice architectural decision explanations",
+        "Review advanced React patterns"
+      ],
+      5: [
+        "Focus on scalability and best practices",
+        "Practice leading technical discussions",
+        "Review industry standards and methodologies"
+      ]
+    }
+    
+    return suggestions[level as keyof typeof suggestions] || suggestions[1]
+  }
+
+  private getFallbackTopics(level: number): string[] {
+    const topics = {
+      1: ["HTML basics", "CSS fundamentals", "JavaScript basics", "Git version control"],
+      2: ["React components", "State management", "CSS Grid/Flexbox", "API integration"],
+      3: ["React Hooks", "Performance optimization", "Async JavaScript", "Testing"],
+      4: ["System architecture", "Authentication", "SSR vs CSR", "Error handling"],
+      5: ["Scalability", "Advanced patterns", "Team leadership", "Code quality"]
+    }
+    
+    return topics[level as keyof typeof topics] || topics[1]
   }
 
   async generateBatchFeedback(questionsAndAnswers: Array<{question: string, answer: string}>, context: InterviewContext): Promise<BatchFeedbackResponse> {
