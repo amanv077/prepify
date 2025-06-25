@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FullPageLoader } from '@/components/ui/loader'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { showToast } from '@/components/ui/toaster'
+import { uploadImageToCloudinary, CloudinaryUploadError } from '@/utils/cloudinary'
 import { 
   ArrowLeft, 
   Save,
@@ -164,42 +165,23 @@ export default function EditCoursePage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      showToast.error('Please select an image file')
-      return
-    }
-
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      showToast.error('Image size must be less than 5MB')
-      return
-    }
-
     setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '')
-
     try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData
-        }
-      )
+      const result = await uploadImageToCloudinary(file, {
+        folder: 'course-images',
+        maxSizeBytes: 5 * 1024 * 1024, // 5MB
+        allowedFormats: ['jpg', 'jpeg', 'png', 'webp']
+      })
 
-      if (!response.ok) {
-        throw new Error('Failed to upload image')
-      }
-
-      const data = await response.json()
-      handleInputChange('courseImage', data.secure_url)
+      handleInputChange('courseImage', result.secure_url)
       showToast.success('Image uploaded successfully!')
     } catch (error) {
-      console.error('Error uploading image:', error)
-      showToast.error('Failed to upload image')
+      console.error('Image upload error:', error)
+      if (error instanceof CloudinaryUploadError) {
+        showToast.error(error.message)
+      } else {
+        showToast.error('Failed to upload image. Please try again.')
+      }
     } finally {
       setUploading(false)
     }

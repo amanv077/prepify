@@ -26,7 +26,10 @@ import {
   Award,
   Copy,
   Mail,
-  MessageSquare
+  MessageSquare,
+  Download,
+  Play,
+  Bookmark
 } from 'lucide-react'
 
 interface Course {
@@ -146,24 +149,31 @@ export default function CourseDetailsPage() {
 
   const handleShare = async () => {
     const url = window.location.href
+    const shareText = `Check out this amazing program: ${course?.courseName} - ${course?.courseTitle}`
+    
     if (navigator.share) {
       try {
         await navigator.share({
           title: course?.courseName,
-          text: course?.courseTitle,
+          text: shareText,
           url: url
         })
       } catch (error) {
-        // User cancelled or error occurred
+        // User cancelled or error occurred, fallback to copy
+        await copyToClipboard(url)
       }
     } else {
       // Fallback to clipboard
-      try {
-        await navigator.clipboard.writeText(url)
-        showToast.success('Course link copied to clipboard!')
-      } catch (error) {
-        showToast.error('Failed to copy link')
-      }
+      await copyToClipboard(url)
+    }
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast.success('Program link copied to clipboard!')
+    } catch (error) {
+      showToast.error('Failed to copy link')
     }
   }
 
@@ -205,9 +215,16 @@ export default function CourseDetailsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Course not found</h1>
-          <Button onClick={() => router.push('/programs')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <BookOpen className="h-12 w-12 text-blue-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Program not found</h1>
+          <p className="text-gray-600 mb-8">The program you're looking for doesn't exist or has been removed.</p>
+          <Button 
+            onClick={() => router.push('/programs')}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Programs
           </Button>
         </div>
@@ -217,24 +234,30 @@ export default function CourseDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Header */}
+        {/* Enhanced Header with Back Button */}
         <div className="mb-8">
           <Button 
-            variant="ghost" 
             onClick={() => router.push('/programs')}
-            className="mb-4"
+            className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Programs
           </Button>
+          
+          {/* Breadcrumb */}
+          <div className="flex items-center text-sm text-gray-600 space-x-2">
+            <span className="hover:text-blue-600 cursor-pointer" onClick={() => router.push('/programs')}>Programs</span>
+            <span>/</span>
+            <span className="text-gray-900 font-medium">{course?.courseName}</span>
+          </div>
         </div>
 
         {/* Alert */}
         {alert && (
-          <Alert className={`mb-6 ${alert.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-            <AlertDescription className={alert.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+          <Alert className={`mb-8 ${alert.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'} rounded-xl shadow-lg`}>
+            <AlertDescription className={`${alert.type === 'success' ? 'text-green-800' : 'text-red-800'} font-medium`}>
               {alert.message}
             </AlertDescription>
           </Alert>
@@ -243,72 +266,119 @@ export default function CourseDetailsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             
-            {/* Course Header */}
-            <Card>
-              <CardHeader>
-                {course.courseImage && (
+            {/* Course Hero Section */}
+            <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+              {course.courseImage ? (
+                <div className="relative">
                   <img 
                     src={course.courseImage} 
                     alt={course.courseName}
-                    className="w-full h-64 object-cover rounded-lg mb-4"
+                    className="w-full h-80 object-cover"
                   />
-                )}
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-3xl text-gray-900 mb-2">{course.courseName}</CardTitle>
-                    <p className="text-xl text-gray-600 mb-4">{course.courseTitle}</p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      <Badge className={getLevelBadgeColor(course.level)}>
-                        <Star className="h-3 w-3 mr-1" />
-                        {course.level}
-                      </Badge>
-                      <Badge className={getModeBadgeColor(course.mode)}>
-                        <MapPin className="h-3 w-3 mr-1" />
-                        {course.mode}
-                      </Badge>
-                      {enrollment && getEnrollmentBadge(enrollment.enrollmentStatus)}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h1 className="text-4xl font-bold mb-3 leading-tight">{course.courseName}</h1>
+                        <p className="text-xl text-gray-200 mb-4 leading-relaxed">{course.courseTitle}</p>
+                        
+                        <div className="flex flex-wrap gap-3">
+                          <Badge className="bg-green-600 text-white font-bold px-4 py-2 text-sm rounded-full">
+                            <Star className="h-4 w-4 mr-2" />
+                            {course.level}
+                          </Badge>
+                          <Badge className="bg-blue-600 text-white font-bold px-4 py-2 text-sm rounded-full">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            {course.mode}
+                          </Badge>
+                          {enrollment && (
+                            <Badge className="bg-yellow-600 text-white font-bold px-4 py-2 text-sm rounded-full">
+                              <Timer className="h-4 w-4 mr-2" />
+                              {enrollment.enrollmentStatus}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={handleShare}
+                        className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-xl transition-all"
+                      >
+                        <Share2 className="h-5 w-5 mr-2" />
+                        Share
+                      </Button>
                     </div>
                   </div>
-                  <Button variant="outline" onClick={handleShare}>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
-                  </Button>
                 </div>
-              </CardHeader>
-            </Card>
+              ) : (
+                <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 p-8 text-white min-h-80 flex items-center">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex-1">
+                      <BookOpen className="h-16 w-16 text-white/80 mb-4" />
+                      <h1 className="text-4xl font-bold mb-3 leading-tight">{course.courseName}</h1>
+                      <p className="text-xl text-gray-200 mb-4 leading-relaxed">{course.courseTitle}</p>
+                      
+                      <div className="flex flex-wrap gap-3">
+                        <Badge className="bg-green-600 text-white font-bold px-4 py-2 text-sm rounded-full">
+                          <Star className="h-4 w-4 mr-2" />
+                          {course.level}
+                        </Badge>
+                        <Badge className="bg-blue-600 text-white font-bold px-4 py-2 text-sm rounded-full">
+                          <MapPin className="h-4 w-4 mr-2" />
+                          {course.mode}
+                        </Badge>
+                        {enrollment && (
+                          <Badge className="bg-yellow-600 text-white font-bold px-4 py-2 text-sm rounded-full">
+                            <Timer className="h-4 w-4 mr-2" />
+                            {enrollment.enrollmentStatus}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={handleShare}
+                      className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-xl transition-all"
+                    >
+                      <Share2 className="h-5 w-5 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Course Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BookOpen className="h-5 w-5 mr-2" />
-                  Course Description
+            <Card className="shadow-xl rounded-2xl border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-2xl font-bold text-gray-900">
+                  <BookOpen className="h-6 w-6 mr-3 text-blue-600" />
+                  Program Description
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="prose max-w-none">
-                  <p className="text-gray-700 whitespace-pre-wrap">{course.courseDetails}</p>
+                  <p className="text-gray-800 text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                    {course.courseDetails}
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
             {/* What You'll Learn */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Target className="h-5 w-5 mr-2" />
+            <Card className="shadow-xl rounded-2xl border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-2xl font-bold text-gray-900">
+                  <Target className="h-6 w-6 mr-3 text-green-600" />
                   What You'll Learn
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {course.whatYouWillLearn.map((item, index) => (
-                    <div key={index} className="flex items-start space-x-2">
-                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-700">{item}</span>
+                    <div key={index} className="flex items-start space-x-3 p-4 bg-green-50 rounded-xl border border-green-100">
+                      <CheckCircle className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-800 font-medium leading-relaxed">{item}</span>
                     </div>
                   ))}
                 </div>
@@ -316,17 +386,20 @@ export default function CourseDetailsPage() {
             </Card>
 
             {/* Skills */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Award className="h-5 w-5 mr-2" />
-                  Skills You'll Gain
+            <Card className="shadow-xl rounded-2xl border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-2xl font-bold text-gray-900">
+                  <Award className="h-6 w-6 mr-3 text-purple-600" />
+                  Skills You'll Master
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {course.skills.map((skill, index) => (
-                    <Badge key={index} variant="secondary" className="text-sm">
+                    <Badge 
+                      key={index} 
+                      className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 font-semibold px-4 py-2 text-sm rounded-full border border-purple-200 hover:from-purple-200 hover:to-blue-200 transition-all"
+                    >
                       {skill}
                     </Badge>
                   ))}
@@ -335,54 +408,64 @@ export default function CourseDetailsPage() {
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Enhanced Sidebar */}
           <div className="space-y-6">
             
             {/* Course Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Information</CardTitle>
+            <Card className="shadow-xl rounded-2xl border-0 bg-gradient-to-br from-blue-50 to-purple-50">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold text-gray-900">Program Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+              <CardContent className="space-y-5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm">
                     <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm text-gray-600">Instructor</span>
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <Users className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700">Instructor</span>
                     </div>
-                    <span className="text-sm font-medium">{course.teacher}</span>
+                    <span className="text-sm font-bold text-gray-900">{course.teacher}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm">
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm text-gray-600">Duration</span>
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                        <Clock className="h-5 w-5 text-green-600" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700">Duration</span>
                     </div>
-                    <span className="text-sm font-medium">{course.duration}</span>
+                    <span className="text-sm font-bold text-gray-900">{course.duration}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm">
                     <div className="flex items-center">
-                      <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm text-gray-600">Level</span>
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                        <GraduationCap className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700">Level</span>
                     </div>
-                    <span className="text-sm font-medium">{course.level}</span>
+                    <span className="text-sm font-bold text-gray-900">{course.level}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm">
                     <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm text-gray-600">Mode</span>
+                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                        <MapPin className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700">Mode</span>
                     </div>
-                    <span className="text-sm font-medium">{course.mode}</span>
+                    <span className="text-sm font-bold text-gray-900">{course.mode}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm">
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm text-gray-600">Created</span>
+                      <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                        <Calendar className="h-5 w-5 text-yellow-600" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700">Created</span>
                     </div>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-bold text-gray-900">
                       {new Date(course.createdAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -391,75 +474,139 @@ export default function CourseDetailsPage() {
             </Card>
 
             {/* Enrollment Action */}
-            <Card>
+            <Card className="shadow-xl rounded-2xl border-0 bg-gradient-to-br from-green-50 to-blue-50">
               <CardContent className="p-6">
                 {status === 'unauthenticated' ? (
                   <div className="text-center space-y-4">
-                    <p className="text-sm text-gray-600">Sign in to enroll in this course</p>
-                    <Button className="w-full" onClick={() => router.push('/login')}>
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                      <GraduationCap className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <p className="text-lg font-semibold text-gray-900">Ready to Start Learning?</p>
+                    <p className="text-sm text-gray-600">Sign in to enroll in this program</p>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
+                      onClick={() => router.push('/login')}
+                    >
+                      <GraduationCap className="h-5 w-5 mr-2" />
                       Sign In to Enroll
                     </Button>
                   </div>
                 ) : session?.user?.role !== 'USER' ? (
                   <div className="text-center space-y-4">
-                    <p className="text-sm text-gray-600">Only users can enroll in courses</p>
-                    <Button className="w-full" disabled>
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                      <AlertCircle className="h-8 w-8 text-gray-500" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-600">Only users can enroll in programs</p>
+                    <Button className="w-full bg-gray-100 text-gray-600 font-bold py-3 rounded-xl" disabled>
                       Enrollment Not Available
                     </Button>
                   </div>
                 ) : enrollment ? (
                   <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                      {enrollment.enrollmentStatus === 'PENDING' && <Timer className="h-8 w-8 text-yellow-600" />}
+                      {enrollment.enrollmentStatus === 'APPROVED' && <CheckCircle className="h-8 w-8 text-green-600" />}
+                      {enrollment.enrollmentStatus === 'REJECTED' && <AlertCircle className="h-8 w-8 text-red-600" />}
+                    </div>
                     {getEnrollmentBadge(enrollment.enrollmentStatus)}
-                    <p className="text-sm text-gray-600">
-                      {enrollment.enrollmentStatus === 'PENDING' && 'Your application is being reviewed'}
-                      {enrollment.enrollmentStatus === 'APPROVED' && 'You are enrolled in this course'}
-                      {enrollment.enrollmentStatus === 'REJECTED' && 'Your application was not approved'}
+                    <p className="text-sm font-medium text-gray-700">
+                      {enrollment.enrollmentStatus === 'PENDING' && 'Your application is being reviewed by our team'}
+                      {enrollment.enrollmentStatus === 'APPROVED' && 'Congratulations! You are enrolled in this program'}
+                      {enrollment.enrollmentStatus === 'REJECTED' && 'Your application was not approved this time'}
                     </p>
                     {enrollment.enrollmentStatus === 'REJECTED' && (
-                      <Button className="w-full" onClick={handleEnroll} disabled={enrolling}>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
+                        onClick={handleEnroll} 
+                        disabled={enrolling}
+                      >
+                        <GraduationCap className="h-5 w-5 mr-2" />
                         Apply Again
                       </Button>
                     )}
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <GraduationCap className="h-8 w-8 text-green-600" />
+                      </div>
+                      <p className="text-lg font-bold text-gray-900 mb-2">Start Your Journey</p>
+                    </div>
                     <Button 
-                      className="w-full" 
+                      className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg text-lg" 
                       onClick={handleEnroll} 
                       disabled={enrolling}
                     >
                       {enrolling ? (
                         <>
-                          <Timer className="h-4 w-4 mr-2 animate-spin" />
+                          <Timer className="h-5 w-5 mr-2 animate-spin" />
                           Enrolling...
                         </>
                       ) : (
                         <>
-                          <GraduationCap className="h-4 w-4 mr-2" />
-                          Enroll in Course
+                          <GraduationCap className="h-5 w-5 mr-2" />
+                          Enroll in Program
                         </>
                       )}
                     </Button>
-                    <p className="text-xs text-gray-500 text-center">
-                      Your enrollment will be reviewed by our admins
+                    <p className="text-xs text-gray-500 text-center font-medium">
+                      🎓 Your enrollment will be reviewed by our admins
                     </p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Contact */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Need Help?</CardTitle>
+            {/* Quick Actions */}
+            <Card className="shadow-xl rounded-2xl border-0">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-bold text-gray-900">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Mail className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 transition-all p-3 rounded-xl"
+                  onClick={() => copyToClipboard(window.location.href)}
+                >
+                  <Copy className="h-4 w-4 mr-3" />
+                  Copy Program Link
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-green-50 hover:border-green-300 transition-all p-3 rounded-xl"
+                >
+                  <Bookmark className="h-4 w-4 mr-3" />
+                  Save Program
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-purple-50 hover:border-purple-300 transition-all p-3 rounded-xl"
+                >
+                  <Download className="h-4 w-4 mr-3" />
+                  Download Brochure
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Contact Support */}
+            <Card className="shadow-xl rounded-2xl border-0 bg-gradient-to-br from-orange-50 to-red-50">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-bold text-gray-900">Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-orange-50 hover:border-orange-300 transition-all p-3 rounded-xl"
+                >
+                  <Mail className="h-4 w-4 mr-3" />
                   Contact Support
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <MessageSquare className="h-4 w-4 mr-2" />
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 transition-all p-3 rounded-xl"
+                >
+                  <MessageSquare className="h-4 w-4 mr-3" />
                   Live Chat
                 </Button>
               </CardContent>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { uploadImageToCloudinary, CloudinaryUploadError } from '@/utils/cloudinary'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -33,6 +34,7 @@ export default function CreateCoursePage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [errors, setErrors] = useState<any>({})
   const [success, setSuccess] = useState(false)
+  const [cloudinaryConfigured, setCloudinaryConfigured] = useState<boolean | null>(null)
 
   const [formData, setFormData] = useState({
     courseName: '',
@@ -61,7 +63,25 @@ export default function CreateCoursePage() {
       router.push('/dashboard')
       return
     }
+
+    // Check Cloudinary configuration on component mount
+    checkCloudinaryConfig()
   }, [status, session, router])
+
+  const checkCloudinaryConfig = async () => {
+    try {
+      const response = await fetch('/api/cloudinary/check')
+      const data = await response.json()
+      setCloudinaryConfigured(data.configured)
+      
+      if (!data.configured) {
+        console.warn('Cloudinary not configured:', data.error)
+      }
+    } catch (error) {
+      console.error('Failed to check Cloudinary configuration:', error)
+      setCloudinaryConfigured(false)
+    }
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -110,27 +130,30 @@ export default function CreateCoursePage() {
 
     setUploadingImage(true)
     try {
-      const uploadFormData = new FormData()
-      uploadFormData.append('file', file)
-      uploadFormData.append('upload_preset', 'courses') // You'll need to create this preset in Cloudinary
+      const result = await uploadImageToCloudinary(file, {
+        folder: 'course-images',
+        maxSizeBytes: 5 * 1024 * 1024, // 5MB
+        allowedFormats: ['jpg', 'jpeg', 'png', 'webp']
+      })
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dwvifkvqi'}/image/upload`,
-        {
-          method: 'POST',
-          body: uploadFormData
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        setFormData(prev => ({ ...prev, courseImage: data.secure_url }))
-      } else {
-        throw new Error('Upload failed')
-      }
+      setFormData(prev => ({
+        ...prev,
+        courseImage: result.secure_url
+      }))
+      
+      console.log('Image uploaded successfully!')
     } catch (error) {
-      console.error('Error uploading image:', error)
-      alert('Failed to upload image. Please try again.')
+      console.error('Image upload error:', error)
+      if (error instanceof CloudinaryUploadError) {
+        // Show more helpful error message for common Cloudinary issues
+        if (error.message.includes('Upload preset') && error.message.includes('not found')) {
+          alert(`❌ Cloudinary Configuration Error\n\n${error.message}\n\nTo fix this:\n1. Go to https://cloudinary.com/console/settings/upload\n2. Create an upload preset named "courses"\n3. Set it to "Unsigned" mode\n4. Save and try uploading again`)
+        } else {
+          alert(`Upload Error: ${error.message}`)
+        }
+      } else {
+        alert('Failed to upload image. Please try again.')
+      }
     } finally {
       setUploadingImage(false)
     }
@@ -456,6 +479,24 @@ export default function CreateCoursePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {cloudinaryConfigured === false && (
+                  <Alert className="border-amber-200 bg-amber-50">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800">
+                      <strong>Cloudinary not configured:</strong> Image upload may fail. 
+                      Please create an upload preset named "courses" in your{' '}
+                      <a 
+                        href="https://cloudinary.com/console/settings/upload" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="underline hover:text-amber-900"
+                      >
+                        Cloudinary dashboard
+                      </a>{' '}
+                      and set it to "Unsigned" mode.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                   {formData.courseImage ? (
                     <div className="space-y-4">
