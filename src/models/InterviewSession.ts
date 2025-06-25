@@ -48,8 +48,11 @@ const InterviewSessionSchema = new mongoose.Schema({
       questionId: String,
       question: String,
       answer: String,
+      correctAnswer: String,
       feedback: String,
       score: Number,
+      suggestions: [String],
+      topicsToRevise: [String],
       askedAt: {
         type: Date,
         default: Date.now
