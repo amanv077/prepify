@@ -199,7 +199,7 @@ export default function UserDashboard() {
                   </Button>
 
                   <Button asChild variant="outline" className="h-auto p-6 flex flex-col items-start space-y-2">
-                    <Link href="/interview">
+                    <Link href="/prepare">
                       <Target className="h-8 w-8 text-green-600" />
                       <div className="text-left">
                         <h3 className="font-semibold">Start Interview</h3>
