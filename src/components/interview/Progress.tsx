@@ -38,11 +38,11 @@ export const ProgressStep: React.FC<ProgressStepProps> = ({
           )}
         </div>
         <div className="mt-2 text-center">
-          <div className={`text-sm font-medium ${isCurrent ? 'text-blue-600' : isPast ? 'text-green-600' : 'text-gray-500'}`}>
+          <div className={`text-sm font-medium ${isCurrent ? 'text-blue-600' : isPast ? 'text-green-600' : 'text-gray-700'}`}>
             {label}
           </div>
           {description && (
-            <div className="text-xs text-gray-500 mt-1">{description}</div>
+            <div className="text-xs text-gray-700 mt-1">{description}</div>
           )}
         </div>
       </div>
@@ -108,7 +108,7 @@ export const InterviewProgress: React.FC<InterviewProgressProps> = ({
     <div className="space-y-4">
       {/* Overall Progress */}
       <div>
-        <div className="flex justify-between text-sm text-gray-600 mb-2">
+        <div className="flex justify-between text-sm text-gray-700 mb-2">
           <span>Overall Progress</span>
           <span>{Math.round(overallProgress)}%</span>
         </div>
@@ -137,7 +137,7 @@ export const InterviewProgress: React.FC<InterviewProgressProps> = ({
 
       {/* Current Level Progress */}
       <div>
-        <div className="flex justify-between text-sm text-gray-600 mb-2">
+        <div className="flex justify-between text-sm text-gray-700 mb-2">
           <span>Level {currentLevel} Progress</span>
           <span>{currentQuestion}/{questionsPerLevel}</span>
         </div>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { FullPageLoader } from '@/components/ui/loader'
 import { User, Mail, Phone, MapPin, Building2, Edit, Save, X } from 'lucide-react'
 
@@ -65,6 +65,13 @@ export default function AgentProfile() {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
+    }))
+  }
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
     }))
   }
 
@@ -253,12 +260,16 @@ export default function AgentProfile() {
                   <div className="space-y-2">
                     <Label htmlFor="department">Department</Label>
                     {isEditing ? (
-                      <Select name="department" value={formData.department} onChange={(e) => handleInputChange(e)}>
-                        <option value="">Select department</option>
-                        <option value="Client Services">Client Services</option>
-                        <option value="Technical Support">Technical Support</option>
-                        <option value="Sales">Sales</option>
-                        <option value="Training">Training</option>
+                      <Select value={formData.department} onValueChange={(value) => handleSelectChange('department', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Client Services">Client Services</SelectItem>
+                          <SelectItem value="Technical Support">Technical Support</SelectItem>
+                          <SelectItem value="Sales">Sales</SelectItem>
+                          <SelectItem value="Training">Training</SelectItem>
+                        </SelectContent>
                       </Select>
                     ) : (
                       <p className="text-sm text-gray-900">{formData.department}</p>
@@ -268,12 +279,16 @@ export default function AgentProfile() {
                   <div className="space-y-2">
                     <Label htmlFor="experience">Experience Level</Label>
                     {isEditing ? (
-                      <Select name="experience" value={formData.experience} onChange={(e) => handleInputChange(e)}>
-                        <option value="">Select experience</option>
-                        <option value="1-2 years">1-2 years</option>
-                        <option value="3-5 years">3-5 years</option>
-                        <option value="5+ years">5+ years</option>
-                        <option value="10+ years">10+ years</option>
+                      <Select value={formData.experience} onValueChange={(value) => handleSelectChange('experience', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select experience" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-2 years">1-2 years</SelectItem>
+                          <SelectItem value="3-5 years">3-5 years</SelectItem>
+                          <SelectItem value="5+ years">5+ years</SelectItem>
+                          <SelectItem value="10+ years">10+ years</SelectItem>
+                        </SelectContent>
                       </Select>
                     ) : (
                       <p className="text-sm text-gray-900">{formData.experience}</p>

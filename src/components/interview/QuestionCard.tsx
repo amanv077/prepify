@@ -104,13 +104,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   className="min-h-[200px]"
                   disabled={isSubmitting}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-700 mt-1">
                   Tip: Structure your answer clearly and provide specific examples to demonstrate your experience.
                 </p>
               </div>
               
               <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   Take your time to provide a thoughtful, detailed answer.
                 </p>
                 <Button 
@@ -188,7 +188,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                     </span>
                   </div>
                   {question.answeredAt && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="flex items-center space-x-2 text-sm text-gray-700">
                       <Clock className="h-4 w-4" />
                       <span>
                         Answered at {new Date(question.answeredAt).toLocaleTimeString()}

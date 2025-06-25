@@ -55,7 +55,7 @@ export default function Loader({ size = 'md', text, className }: LoaderProps) {
 
       {/* Loading text with typing animation */}
       {text && (
-        <div className={cn("text-gray-600 font-medium", textSizes[size])}>
+        <div className={cn("text-gray-800 font-medium", textSizes[size])}>
           <span className="inline-block animate-pulse">{text}</span>
           <span className="inline-block animate-ping ml-1">...</span>
         </div>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Loader from '@/components/ui/loader'
 import { showToast } from '@/components/ui/toaster'
 import { 
@@ -219,17 +219,19 @@ export default function AddInterviewPrepPage() {
                 <div className="space-y-2">
                   <Label htmlFor="experience">Required Experience *</Label>
                   <Select
-                    id="experience"
-                    required
                     value={formData.experience}
-                    onChange={(e) => handleInputChange('experience', e.target.value)}
+                    onValueChange={(value) => handleInputChange('experience', value)}
                   >
-                    <option value="">Select Experience Level</option>
-                    <option value="0-1 years">0-1 years (Entry Level)</option>
-                    <option value="1-3 years">1-3 years (Junior)</option>
-                    <option value="3-5 years">3-5 years (Mid-level)</option>
-                    <option value="5-8 years">5-8 years (Senior)</option>
-                    <option value="8+ years">8+ years (Lead/Principal)</option>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Experience Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0-1 years">0-1 years (Entry Level)</SelectItem>
+                      <SelectItem value="1-3 years">1-3 years (Junior)</SelectItem>
+                      <SelectItem value="3-5 years">3-5 years (Mid-level)</SelectItem>
+                      <SelectItem value="5-8 years">5-8 years (Senior)</SelectItem>
+                      <SelectItem value="8+ years">8+ years (Lead/Principal)</SelectItem>
+                    </SelectContent>
                   </Select>
                 </div>
 

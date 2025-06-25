@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Loader from '@/components/ui/loader'
 import { showToast } from '@/components/ui/toaster'
 import { 
@@ -53,6 +53,13 @@ export default function AddEducationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Basic validation
+    if (!formData.class.trim() || !formData.subject.trim() || !formData.institution.trim() || !formData.graduationYear) {
+      showToast.error('Please fill in all required fields')
+      return
+    }
+    
     setSaving(true)
 
     try {
@@ -68,14 +75,15 @@ export default function AddEducationPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to add education')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to add education')
       }
 
       showToast.success('Education added successfully!')
       router.push('/profile')
     } catch (error) {
       console.error('Error adding education:', error)
-      showToast.error('Failed to add education')
+      showToast.error(error instanceof Error ? error.message : 'Failed to add education')
     } finally {
       setSaving(false)
     }
@@ -155,15 +163,19 @@ export default function AddEducationPage() {
                 <div className="space-y-2">
                   <Label htmlFor="graduationYear">Graduation Year *</Label>
                   <Select
-                    id="graduationYear"
-                    required
                     value={formData.graduationYear}
-                    onChange={(e) => handleInputChange('graduationYear', e.target.value)}
+                    onValueChange={(value) => handleInputChange('graduationYear', value)}
                   >
-                    <option value="">Select Year</option>
-                    {years.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map(year => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
 

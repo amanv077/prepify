@@ -114,7 +114,7 @@ export default function DebugPage() {
                               <br />
                               <strong>Steps:</strong>
                               <ol className="mt-2 ml-4 list-decimal">
-                                <li>Go to <a href="https://makersuite.google.com/app/apikey" target="_blank" className="text-blue-600 underline">Google AI Studio</a></li>
+                                <li>Go to <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google AI Studio</a></li>
                                 <li>Create a new API key</li>
                                 <li>Update your .env.local file</li>
                                 <li>Restart the development server</li>

@@ -22,13 +22,17 @@ import {
   Mail,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  BookOpen,
+  Plus,
+  GraduationCap
 } from 'lucide-react'
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState<any>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -44,9 +48,23 @@ export default function AdminDashboard() {
     }
 
     if (status === 'authenticated') {
-      setLoading(false)
+      fetchStats()
     }
   }, [status, session, router])
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/admin/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (status === 'loading' || loading) {
     return <FullPageLoader text="Loading admin dashboard..." />
@@ -72,7 +90,7 @@ export default function AdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/admin/users')}>
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 rounded-lg">
@@ -80,7 +98,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">1,234</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -94,7 +112,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Active Sessions</p>
-                  <p className="text-2xl font-bold text-gray-900">89</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.activeSessions || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -104,11 +122,11 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <Star className="h-6 w-6 text-purple-600" />
+                  <Database className="h-6 w-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Avg Rating</p>
-                  <p className="text-2xl font-bold text-gray-900">4.8</p>
+                  <p className="text-sm font-medium text-gray-600">Total Courses</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.totalCourses || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -118,11 +136,11 @@ export default function AdminDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Activity className="h-6 w-6 text-yellow-600" />
+                  <Clock className="h-6 w-6 text-yellow-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">System Health</p>
-                  <p className="text-2xl font-bold text-green-600">Healthy</p>
+                  <p className="text-sm font-medium text-gray-600">Pending Enrollments</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.pendingEnrollments || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -148,6 +166,27 @@ export default function AdminDashboard() {
                     <Link href="/admin/users">
                       <Users className="h-6 w-6 text-blue-600" />
                       <span className="text-sm">Manage Users</span>
+                    </Link>
+                  </Button>
+
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                    <Link href="/admin/courses/create">
+                      <Plus className="h-6 w-6 text-green-600" />
+                      <span className="text-sm">Create Course</span>
+                    </Link>
+                  </Button>
+
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                    <Link href="/admin/courses">
+                      <BookOpen className="h-6 w-6 text-blue-600" />
+                      <span className="text-sm">Manage Courses</span>
+                    </Link>
+                  </Button>
+
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                    <Link href="/admin/enrollments">
+                      <GraduationCap className="h-6 w-6 text-purple-600" />
+                      <span className="text-sm">Course Enrollments</span>
                     </Link>
                   </Button>
 

@@ -315,21 +315,17 @@ export default function ProgramsPage() {
           {courses.map((course) => {
             const enrollment = getEnrollmentStatus(course._id)
             return (
-              <Card 
-                key={course._id} 
-                className="hover:shadow-lg transition-shadow h-full cursor-pointer group"
-                onClick={() => router.push(`/programs/${course._id}`)}
-              >
+              <Card key={course._id} className="hover:shadow-lg transition-shadow h-full">
                 <CardHeader className="space-y-4">
                   {course.courseImage && (
                     <img 
                       src={course.courseImage} 
                       alt={course.courseName}
-                      className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform"
+                      className="w-full h-48 object-cover rounded-lg"
                     />
                   )}
                   <div>
-                    <CardTitle className="line-clamp-2 group-hover:text-blue-600 transition-colors">{course.courseName}</CardTitle>
+                    <CardTitle className="line-clamp-2">{course.courseName}</CardTitle>
                     <p className="text-gray-600 text-sm mt-1 line-clamp-2">{course.courseTitle}</p>
                   </div>
                 </CardHeader>
@@ -376,28 +372,15 @@ export default function ProgramsPage() {
                     {!session?.user ? (
                       <Button 
                         className="w-full" 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          router.push('/login')
-                        }}
+                        onClick={() => router.push('/login')}
                       >
                         Login to Enroll
-                      </Button>
-                    ) : session?.user?.role !== 'USER' ? (
-                      <Button 
-                        className="w-full" 
-                        variant="outline" 
-                        disabled
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        View Details
                       </Button>
                     ) : enrollment ? (
                       <Button 
                         className="w-full" 
                         variant="outline" 
                         disabled
-                        onClick={(e) => e.stopPropagation()}
                       >
                         {enrollment.enrollmentStatus === 'PENDING' && 'Enrollment Pending'}
                         {enrollment.enrollmentStatus === 'APPROVED' && 'Already Enrolled'}
@@ -406,10 +389,7 @@ export default function ProgramsPage() {
                     ) : (
                       <Button 
                         className="w-full" 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEnroll(course._id)
-                        }}
+                        onClick={() => handleEnroll(course._id)}
                         disabled={enrolling === course._id}
                       >
                         {enrolling === course._id ? 'Enrolling...' : 'Enroll Now'}
