@@ -88,6 +88,15 @@ export default function Navbar() {
                     >
                       <User className="w-4 h-4 mr-2" />
                       Dashboard
+                    </Link>
+                    
+                    <Link
+                      href="/profile"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      My Profile
                     </Link>                    <button
                       onClick={() => {
                         signOut()
