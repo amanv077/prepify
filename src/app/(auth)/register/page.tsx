@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { showToast } from '@/components/ui/toaster'
 import { ButtonLoader } from '@/components/ui/loader'
@@ -14,6 +15,7 @@ interface PasswordStrength {
 }
 
 export default function RegisterPage() {
+  const { data: session, status } = useSession()
   const [formData, setFormData] = useState({
     name: '',
     email: '',    password: '',
@@ -25,6 +27,45 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
   const router = useRouter()
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      const dashboardLink = getDashboardLink(session.user.role)
+      router.push(dashboardLink)
+    }
+  }, [status, session, router])
+
+  const getDashboardLink = (role?: string) => {
+    if (!role) return '/dashboard'
+    
+    switch (role) {
+      case 'ADMIN':
+        return '/admin/dashboard'
+      case 'AGENT':
+        return '/agent/dashboard'
+      default:
+        return '/dashboard'
+    }
+  }
+
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <ButtonLoader size="md" />
+      </div>
+    )
+  }
+
+  // Show loading while redirecting authenticated users
+  if (status === 'authenticated' && session) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <ButtonLoader size="md" />
+      </div>
+    )
+  }
 
   const getPasswordStrength = (password: string): PasswordStrength => {
     let score = 0

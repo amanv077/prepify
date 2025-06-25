@@ -1,6 +1,8 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,18 +38,44 @@ import {
 
 export default function Home() {
   const { data: session, status } = useSession()
+  const router = useRouter()
 
   const getDashboardLink = () => {
     if (!session?.user?.role) return '/dashboard'
     
     switch (session.user.role) {
       case 'ADMIN':
-        return '/admin'
+        return '/admin/dashboard'
       case 'AGENT':
-        return '/agent'
+        return '/agent/dashboard'
       default:
         return '/dashboard'
     }
+  }
+
+  // Redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push(getDashboardLink())
+    }
+  }, [status, session, router])
+
+  // Show loading screen while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <Loader size="lg" text="Loading..." />
+      </div>
+    )
+  }
+
+  // Show loading screen for authenticated users while redirecting
+  if (status === 'authenticated' && session) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <Loader size="lg" text="Redirecting to your dashboard..." />
+      </div>
+    )
   }
 
   return (
@@ -86,53 +114,32 @@ export default function Home() {
                 </p>
               </div>
               
-              {status === 'loading' ? (
-                <Loader size="md" text="Loading your dashboard..." />
-              ) : session ? (
-                <div className="space-y-6">
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-2xl border border-blue-100 max-w-md">
-                    <p className="text-lg text-gray-800 mb-2">
-                      Welcome back, <span className="font-semibold text-blue-600">{session.user.name}</span>!
-                    </p>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Role: <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">{session.user.role}</span>
-                    </p>
-                    <Link href={getDashboardLink()}>
-                      <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl py-3">
-                        Continue Your Journey
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <Link href="/register">
-                      <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
-                        Start Free Training
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
-                    
-                    <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl">
-                      <PlayCircle className="mr-2 h-5 w-5" />
-                      Watch Demo
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/register">
+                    <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-10 py-4 text-lg rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                      Start Free Training
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
-                  </div>
+                  </Link>
                   
-                  <div className="flex items-center space-x-6 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      <span className="font-medium">No Credit Card Required</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                      <span className="font-medium">Instant Access</span>
-                    </div>
+                  <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl">
+                    <PlayCircle className="mr-2 h-5 w-5" />
+                    Watch Demo
+                  </Button>
+                </div>
+                
+                <div className="flex items-center space-x-6 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span className="font-medium">No Credit Card Required</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="font-medium">Instant Access</span>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
             
             {/* Right Content - Stats & Visual */}
@@ -515,23 +522,21 @@ export default function Home() {
             Start your journey today with our free trial.
           </p>
           
-          {!session && (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/register">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              
-              <Link href="/contact">
-                <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-2">
-                  Talk to an Expert
-                  <MessageSquare className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link href="/register">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            
+            <Link href="/contact">
+              <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-2">
+                Talk to an Expert
+                <MessageSquare className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
           
           <div className="mt-8 flex justify-center items-center space-x-6 text-sm text-gray-500">
             <div className="flex items-center">

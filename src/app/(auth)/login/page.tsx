@@ -1,20 +1,61 @@
 'use client'
 
-import { useState } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import { signIn, getSession, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { ButtonLoader } from '@/components/ui/loader'
 import { showToast } from '@/components/ui/toaster'
 
-export default function LoginPage() {  const [formData, setFormData] = useState({
+export default function LoginPage() {
+  const { data: session, status } = useSession()
+  const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      const dashboardLink = getDashboardLink(session.user.role)
+      router.push(dashboardLink)
+    }
+  }, [status, session, router])
+
+  const getDashboardLink = (role?: string) => {
+    if (!role) return '/dashboard'
+    
+    switch (role) {
+      case 'ADMIN':
+        return '/admin/dashboard'
+      case 'AGENT':
+        return '/agent/dashboard'
+      default:
+        return '/dashboard'
+    }
+  }
+
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <ButtonLoader size="md" />
+      </div>
+    )
+  }
+
+  // Show loading while redirecting authenticated users
+  if (status === 'authenticated' && session) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <ButtonLoader size="md" />
+      </div>
+    )
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)

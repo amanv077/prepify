@@ -19,11 +19,24 @@ export default function Navbar() {
     
     switch (session.user.role) {
       case 'ADMIN':
-        return '/admin'
+        return '/admin/dashboard'
       case 'AGENT':
-        return '/agent'
+        return '/agent/dashboard'
       default:
         return '/dashboard'
+    }
+  }
+
+  const getProfileLink = () => {
+    if (!session?.user?.role) return '/profile'
+    
+    switch (session.user.role) {
+      case 'ADMIN':
+        return '/admin/profile'
+      case 'AGENT':
+        return '/agent/profile'
+      default:
+        return '/profile'
     }
   }
   const navLinks = [
@@ -91,7 +104,7 @@ export default function Navbar() {
                     </Link>
                     
                     <Link
-                      href="/profile"
+                      href={getProfileLink()}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
                       onClick={() => setIsUserMenuOpen(false)}
                     >

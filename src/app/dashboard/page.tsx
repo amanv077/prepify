@@ -4,9 +4,23 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { FullPageLoader } from '@/components/ui/loader'
 import { checkProfileCompletion, getNextProfileAction, type ProfileStatus } from '@/lib/profileUtils'
 import type { IUserProfile } from '@/models/UserProfile'
+import { 
+  User, 
+  Target, 
+  GraduationCap, 
+  Briefcase, 
+  CheckCircle, 
+  AlertCircle,
+  ArrowRight,
+  Users,
+  TrendingUp,
+  Clock
+} from 'lucide-react'
 
 export default function UserDashboard() {
   const { data: session, status } = useSession()
@@ -48,6 +62,7 @@ export default function UserDashboard() {
       fetchProfile()
     }
   }, [session, status])
+
   if (status === 'loading' || loadingProfile) {
     return <FullPageLoader text="Loading your dashboard..." />
   }
@@ -59,160 +74,299 @@ export default function UserDashboard() {
   const nextAction = getNextProfileAction(profile)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg p-6 bg-white">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">User Dashboard</h1>
-            <p className="text-gray-600">Welcome to your personal dashboard, {session.user.name}</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-8">
+            {/* Header */}
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome back, {session.user.name?.split(' ')[0]}! 👋
+              </h1>
+              <p className="text-gray-600">
+                Ready to ace your next interview? Let's get you prepared.
+              </p>
+            </div>
 
-        {/* Profile Completion Status */}
-        {profileStatus && !profileStatus.isComplete && (
-          <div className="px-4 py-6 sm:px-0">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="ml-3 flex-1">
-                  <h3 className="text-lg font-medium text-blue-900">{nextAction.title}</h3>
-                  <p className="mt-1 text-sm text-blue-800">{nextAction.description}</p>
-                  <div className="mt-3">
-                    <div className="flex items-center">
-                      <div className="flex-1 bg-blue-200 rounded-full h-2">
+            {/* Profile Completion Alert */}
+            {profileStatus && !profileStatus.isComplete && (
+              <Card className="border-amber-200 bg-amber-50">
+                <CardHeader>
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                    <CardTitle className="text-amber-900">{nextAction.title}</CardTitle>
+                  </div>
+                  <CardDescription className="text-amber-800">
+                    {nextAction.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 mr-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-amber-900">Profile Completion</span>
+                        <span className="text-sm font-medium text-amber-900">
+                          {profileStatus.completionPercentage}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-amber-200 rounded-full h-2">
                         <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-amber-600 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${profileStatus.completionPercentage}%` }}
                         />
                       </div>
-                      <span className="ml-3 text-sm font-medium text-blue-900">
-                        {profileStatus.completionPercentage}% Complete
-                      </span>
+                    </div>
+                    <Button asChild>
+                      <Link href={nextAction.actionUrl}>
+                        Complete Now
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <User className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Profile Status</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {profileStatus?.completionPercentage || 0}%
+                      </p>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <Link
-                      href={nextAction.actionUrl}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      Complete Profile
-                      <svg className="ml-2 -mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <TrendingUp className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Interviews</p>
+                      <p className="text-2xl font-bold text-gray-900">0</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Clock className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Practice Time</p>
+                      <p className="text-2xl font-bold text-gray-900">0h</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>
+                  Get started with interview preparation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Button asChild variant="outline" className="h-auto p-6 flex flex-col items-start space-y-2">
+                    <Link href="/profile">
+                      <User className="h-8 w-8 text-blue-600" />
+                      <div className="text-left">
+                        <h3 className="font-semibold">My Profile</h3>
+                        <p className="text-sm text-gray-600">
+                          {profileStatus?.isComplete ? 'View profile' : 'Complete setup'}
+                        </p>
+                      </div>
                     </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                  </Button>
 
-        {/* User Info */}
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Account Information
-              </h3>
-              <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Name</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{session.user.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{session.user.email}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Role</dt>
-                  <dd className="mt-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {session.user.role}
-                    </span>
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Status</dt>
-                  <dd className="mt-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
+                  <Button asChild variant="outline" className="h-auto p-6 flex flex-col items-start space-y-2">
+                    <Link href="/interview">
+                      <Target className="h-8 w-8 text-green-600" />
+                      <div className="text-left">
+                        <h3 className="font-semibold">Start Interview</h3>
+                        <p className="text-sm text-gray-600">
+                          AI-powered practice sessions
+                        </p>
+                      </div>
+                    </Link>
+                  </Button>
 
-        {/* Quick Actions */}
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Quick Actions
-              </h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <Link href="/profile" className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                  <div>
-                    <span className="rounded-lg inline-flex p-3 bg-blue-50 text-blue-600 ring-4 ring-white">
-                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </span>
+                  <Button asChild variant="outline" className="h-auto p-6 flex flex-col items-start space-y-2">
+                    <Link href="/profile/interview-prep/add">
+                      <GraduationCap className="h-8 w-8 text-purple-600" />
+                      <div className="text-left">
+                        <h3 className="font-semibold">Interview Prep</h3>
+                        <p className="text-sm text-gray-600">
+                          Set target role & company
+                        </p>
+                      </div>
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Profile Completion Sidebar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <User className="h-5 w-5" />
+                  <span>Profile Setup</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Basic Profile */}
+                <div className="flex items-center space-x-3">
+                  {profile ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Basic Information</p>
+                    <p className="text-xs text-gray-500">Name, contact, location</p>
                   </div>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      My Profile
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      {profileStatus?.isComplete ? 'View and manage your profile' : 'Complete your profile setup'}
+                  {!profile && (
+                    <Button asChild size="sm" variant="ghost">
+                      <Link href="/profile/complete">
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+
+                {/* Education */}
+                <div className="flex items-center space-x-3">
+                  {profile?.education && profile.education.length > 0 ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Education</p>
+                    <p className="text-xs text-gray-500">
+                      {profile?.education?.length || 0} entries
                     </p>
                   </div>
-                </Link>
-
-                <Link href="/interview" className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                  <div>
-                    <span className="rounded-lg inline-flex p-3 bg-green-50 text-green-600 ring-4 ring-white">
-                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </span>
-                  </div>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Interview Practice
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Start practicing with AI-powered interviews
-                    </p>
-                  </div>
-                </Link>
-
-                <div className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                  <div>
-                    <span className="rounded-lg inline-flex p-3 bg-purple-50 text-purple-600 ring-4 ring-white">
-                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                    </span>
-                  </div>
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Support
-                    </h3>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Get help and contact customer support
-                    </p>
-                  </div>
+                  <Button asChild size="sm" variant="ghost">
+                    <Link href="/profile/education/add">
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
-              </div>
-            </div>
+
+                {/* Experience */}
+                <div className="flex items-center space-x-3">
+                  {profile?.experience && profile.experience.length > 0 ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Experience</p>
+                    <p className="text-xs text-gray-500">
+                      {profile?.experience?.length || 0} entries
+                    </p>
+                  </div>
+                  <Button asChild size="sm" variant="ghost">
+                    <Link href="/profile/experience/add">
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+
+                {/* Interview Prep */}
+                <div className="flex items-center space-x-3">
+                  {profile?.interviewPreparations && profile.interviewPreparations.length > 0 ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Interview Prep</p>
+                    <p className="text-xs text-gray-500">Target role setup</p>
+                  </div>
+                  {(!profile?.interviewPreparations || profile.interviewPreparations.length === 0) && (
+                    <Button asChild size="sm" variant="ghost">
+                      <Link href="/profile/interview-prep/add">
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+
+                {/* Overall Progress */}
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Overall Progress</span>
+                    <span className="text-sm font-medium">
+                      {profileStatus?.completionPercentage || 0}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${profileStatus?.completionPercentage || 0}%` }}
+                    />
+                  </div>
+                  {profileStatus?.isComplete && (
+                    <p className="text-xs text-green-600 mt-2 flex items-center">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Profile complete! Ready for interviews.
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Account Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Email</p>
+                  <p className="text-sm text-gray-900">{session.user.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Role</p>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {session.user.role}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Status</p>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Active
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+
         </div>
       </div>
     </div>
