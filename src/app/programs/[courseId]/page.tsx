@@ -242,7 +242,8 @@ export default function CourseDetailsPage() {
             onClick={() => router.push("/programs")}
             className="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl border-0 text-lg"
           >
-            <ArrowLeft className="h-6 w-6 mr-3" />← Back to Programs
+            <ArrowLeft className="h-6 w-6 mr-3" />
+            Back to Programs
           </Button>
 
           {/* Breadcrumb */}

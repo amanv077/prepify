@@ -60,16 +60,8 @@ export default function Home() {
     }
   }, [status, session, router])
 
-  // Show loading screen while checking authentication
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <Loader size="lg" text="Loading..." />
-      </div>
-    )
-  }
-
-  // Show loading screen for authenticated users while redirecting
+  // Only show loading screen for authenticated users while redirecting
+  // Don't show loader while checking authentication status - let homepage content show immediately
   if (status === 'authenticated' && session) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">

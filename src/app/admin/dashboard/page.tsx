@@ -50,7 +50,23 @@ export default function AdminDashboard() {
     if (status === 'authenticated') {
       fetchStats()
     }
-  }, [status, session, router])
+
+    // Failsafe: Stop loading after 10 seconds to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('Admin dashboard loading timeout - stopping loader')
+        setLoading(false)
+        setStats({
+          totalUsers: 0,
+          activeSessions: 0,
+          totalCourses: 0,
+          pendingEnrollments: 0
+        })
+      }
+    }, 10000)
+
+    return () => clearTimeout(timeout)
+  }, [status, session, router, loading])
 
   const fetchStats = async () => {
     try {
@@ -58,16 +74,36 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json()
         setStats(data.stats)
+      } else {
+        console.error('Failed to fetch stats:', response.status)
+        // Set default stats to prevent loading indefinitely
+        setStats({
+          totalUsers: 0,
+          activeSessions: 0,
+          totalCourses: 0,
+          pendingEnrollments: 0
+        })
       }
     } catch (error) {
       console.error('Error fetching stats:', error)
+      // Set default stats to prevent loading indefinitely
+      setStats({
+        totalUsers: 0,
+        activeSessions: 0,
+        totalCourses: 0,
+        pendingEnrollments: 0
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading') {
     return <FullPageLoader text="Loading admin dashboard..." />
+  }
+
+  if (status === 'authenticated' && loading && !stats) {
+    return <FullPageLoader text="Loading dashboard data..." />
   }
 
   if (!session || session.user.role !== 'ADMIN') {
@@ -89,58 +125,58 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/admin/users')}>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="h-6 w-6 text-blue-600" />
+                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
+                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Sessions</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.activeSessions || 0}</p>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active Sessions</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.activeSessions || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <Database className="h-6 w-6 text-purple-600" />
+                  <Database className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Courses</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalCourses || 0}</p>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Courses</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.totalCourses || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Clock className="h-6 w-6 text-yellow-600" />
+                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Pending Enrollments</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.pendingEnrollments || 0}</p>
+                <div className="ml-3 sm:ml-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Enrollments</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.pendingEnrollments || 0}</p>
                 </div>
               </div>
             </CardContent>

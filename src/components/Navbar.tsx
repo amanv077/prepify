@@ -78,7 +78,11 @@ export default function Navbar() {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">            {status === 'loading' ? (
-              <ButtonLoader size="sm" />
+              // Placeholder that matches the size of auth buttons to prevent layout shift
+              <div className="flex items-center space-x-3">
+                <div className="w-16 h-8 bg-gray-100 animate-pulse rounded"></div>
+                <div className="w-24 h-8 bg-gray-100 animate-pulse rounded"></div>
+              </div>
             ) : session ? (
               <div className="relative">                <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -163,8 +167,10 @@ export default function Navbar() {
                 </Link>
               ))}
                 {status === 'loading' ? (
-                <div className="px-3 py-2">
-                  <ButtonLoader size="sm" />
+                <div className="border-t border-gray-100 pt-2 mt-2 space-y-2">
+                  {/* Placeholder that matches the size of mobile auth buttons */}
+                  <div className="h-8 bg-gray-100 animate-pulse rounded"></div>
+                  <div className="h-8 bg-gray-100 animate-pulse rounded"></div>
                 </div>
               ) : session ? (
                 <div className="border-t border-gray-100 pt-2 mt-2">                  <Link

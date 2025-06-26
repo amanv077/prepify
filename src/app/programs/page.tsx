@@ -13,6 +13,8 @@ import {
   Search, 
   ChevronLeft, 
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   BookOpen,
   Users,
   Clock,
@@ -69,6 +71,7 @@ export default function ProgramsPage() {
   const [modeFilter, setModeFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   useEffect(() => {
     fetchCourses()
@@ -217,129 +220,170 @@ export default function ProgramsPage() {
         )}
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border-0">
-          <div className="space-y-6">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-8 border-0">
+          <div className="space-y-4 sm:space-y-6">
             {/* Search */}
-            <form onSubmit={handleSearch} className="flex space-x-3">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
                   type="text"
-                  placeholder="Search programs by name, skills, or instructor..."
+                  placeholder="Search programs..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-12 pr-4 py-3 text-lg border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="pl-12 pr-4 py-3 text-base sm:text-lg border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all w-full"
                 />
               </div>
               <Button 
                 type="submit" 
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all"
+                className="px-6 sm:px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all w-full sm:w-auto"
               >
                 Search
               </Button>
             </form>
 
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center space-x-3">
-                <Filter className="h-5 w-5 text-blue-600" />
-                <span className="text-lg font-semibold text-gray-900">Filters</span>
-              </div>
-              
-              {/* Level Filter */}
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm font-medium text-gray-600 self-center">Level:</span>
-                <Button
-                  size="sm"
-                  variant={levelFilter === '' ? 'default' : 'outline'}
-                  onClick={() => setLevelFilter('')}
-                  className={`rounded-full px-4 py-2 transition-all ${
-                    levelFilter === '' 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'hover:bg-blue-50 hover:border-blue-300'
-                  }`}
-                >
-                  All Levels
-                </Button>
-                <Button
-                  size="sm"
-                  variant={levelFilter === 'BEGINNER' ? 'default' : 'outline'}
-                  onClick={() => setLevelFilter('BEGINNER')}
-                  className={`rounded-full px-4 py-2 transition-all ${
-                    levelFilter === 'BEGINNER' 
-                      ? 'bg-green-600 text-white hover:bg-green-700' 
-                      : 'hover:bg-green-50 hover:border-green-300'
-                  }`}
-                >
-                  Beginner
-                </Button>
-                <Button
-                  size="sm"
-                  variant={levelFilter === 'INTERMEDIATE' ? 'default' : 'outline'}
-                  onClick={() => setLevelFilter('INTERMEDIATE')}
-                  className={`rounded-full px-4 py-2 transition-all ${
-                    levelFilter === 'INTERMEDIATE' 
-                      ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
-                      : 'hover:bg-yellow-50 hover:border-yellow-300'
-                  }`}
-                >
-                  Intermediate
-                </Button>
-                <Button
-                  size="sm"
-                  variant={levelFilter === 'ADVANCED' ? 'default' : 'outline'}
-                  onClick={() => setLevelFilter('ADVANCED')}
-                  className={`rounded-full px-4 py-2 transition-all ${
-                    levelFilter === 'ADVANCED' 
-                      ? 'bg-red-600 text-white hover:bg-red-700' 
-                      : 'hover:bg-red-50 hover:border-red-300'
-                  }`}
-                >
-                  Advanced
-                </Button>
-              </div>
-
-              {/* Mode Filter */}
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm font-medium text-gray-600 self-center">Mode:</span>
-                <Button
-                  size="sm"
-                  variant={modeFilter === '' ? 'default' : 'outline'}
-                  onClick={() => setModeFilter('')}
-                  className={`rounded-full px-4 py-2 transition-all ${
-                    modeFilter === '' 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'hover:bg-blue-50 hover:border-blue-300'
-                  }`}
-                >
-                  All Modes
-                </Button>
-                <Button
-                  size="sm"
-                  variant={modeFilter === 'REMOTE' ? 'default' : 'outline'}
-                  onClick={() => setModeFilter('REMOTE')}
-                  className={`rounded-full px-4 py-2 transition-all ${
-                    modeFilter === 'REMOTE' 
-                      ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                      : 'hover:bg-purple-50 hover:border-purple-300'
-                  }`}
-                >
-                  Remote
-                </Button>
-                <Button
-                  size="sm"
-                  variant={modeFilter === 'IN_CLASS' ? 'default' : 'outline'}
-                  onClick={() => setModeFilter('IN_CLASS')}
-                  className={`rounded-full px-4 py-2 transition-all ${
-                    modeFilter === 'IN_CLASS' 
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                      : 'hover:bg-indigo-50 hover:border-indigo-300'
-                  }`}
-                >
-                  In-Class
-                </Button>
-              </div>
+            {/* Filters Header */}
+            <div>
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex items-center justify-between w-full pb-2 border-b border-gray-100 hover:border-gray-200 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <Filter className="h-5 w-5 text-blue-600" />
+                  <span className="text-base sm:text-lg font-semibold text-gray-900">Filters</span>
+                  {(levelFilter || modeFilter) && (
+                    <Badge className="bg-blue-100 text-blue-800 text-xs">
+                      {[levelFilter, modeFilter].filter(Boolean).length} active
+                    </Badge>
+                  )}
+                </div>
+                {isFilterOpen ? (
+                  <ChevronUp className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                )}
+              </button>
             </div>
+            
+            {/* Collapsible Filters */}
+            {isFilterOpen && (
+              <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                {/* Level Filter */}
+                <div className="space-y-2">
+                  <span className="text-sm font-medium text-gray-600 block">Level:</span>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant={levelFilter === '' ? 'default' : 'outline'}
+                      onClick={() => setLevelFilter('')}
+                      className={`rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition-all ${
+                        levelFilter === '' 
+                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                          : 'hover:bg-blue-50 hover:border-blue-300'
+                      }`}
+                    >
+                      All Levels
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={levelFilter === 'BEGINNER' ? 'default' : 'outline'}
+                      onClick={() => setLevelFilter('BEGINNER')}
+                      className={`rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition-all ${
+                        levelFilter === 'BEGINNER' 
+                          ? 'bg-green-600 text-white hover:bg-green-700' 
+                          : 'hover:bg-green-50 hover:border-green-300'
+                      }`}
+                    >
+                      Beginner
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={levelFilter === 'INTERMEDIATE' ? 'default' : 'outline'}
+                      onClick={() => setLevelFilter('INTERMEDIATE')}
+                      className={`rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition-all ${
+                        levelFilter === 'INTERMEDIATE' 
+                          ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
+                          : 'hover:bg-yellow-50 hover:border-yellow-300'
+                      }`}
+                    >
+                      Intermediate
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={levelFilter === 'ADVANCED' ? 'default' : 'outline'}
+                      onClick={() => setLevelFilter('ADVANCED')}
+                      className={`rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition-all ${
+                        levelFilter === 'ADVANCED' 
+                          ? 'bg-red-600 text-white hover:bg-red-700' 
+                          : 'hover:bg-red-50 hover:border-red-300'
+                      }`}
+                    >
+                      Advanced
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Mode Filter */}
+                <div className="space-y-2">
+                  <span className="text-sm font-medium text-gray-600 block">Mode:</span>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant={modeFilter === '' ? 'default' : 'outline'}
+                      onClick={() => setModeFilter('')}
+                      className={`rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition-all ${
+                        modeFilter === '' 
+                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                          : 'hover:bg-blue-50 hover:border-blue-300'
+                      }`}
+                    >
+                      All Modes
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={modeFilter === 'REMOTE' ? 'default' : 'outline'}
+                      onClick={() => setModeFilter('REMOTE')}
+                      className={`rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition-all ${
+                        modeFilter === 'REMOTE' 
+                          ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                          : 'hover:bg-purple-50 hover:border-purple-300'
+                      }`}
+                    >
+                      Remote
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={modeFilter === 'IN_CLASS' ? 'default' : 'outline'}
+                      onClick={() => setModeFilter('IN_CLASS')}
+                      className={`rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm transition-all ${
+                        modeFilter === 'IN_CLASS' 
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+                          : 'hover:bg-indigo-50 hover:border-indigo-300'
+                      }`}
+                    >
+                      In-Class
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                {(levelFilter || modeFilter) && (
+                  <div className="pt-2 border-t border-gray-100">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setLevelFilter('')
+                        setModeFilter('')
+                      }}
+                      className="text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                    >
+                      Clear All Filters
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
