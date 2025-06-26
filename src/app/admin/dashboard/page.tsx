@@ -28,11 +28,54 @@ import {
   GraduationCap
 } from 'lucide-react'
 
+// Stats Card Component with individual loading
+function StatsCard({ 
+  icon: Icon, 
+  title, 
+  value, 
+  loading, 
+  bgColor, 
+  iconColor, 
+  onClick 
+}: {
+  icon: any
+  title: string
+  value: number | string
+  loading: boolean
+  bgColor: string
+  iconColor: string
+  onClick?: () => void
+}) {
+  return (
+    <Card className={`${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`} onClick={onClick}>
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-center">
+          <div className={`p-2 ${bgColor} rounded-lg`}>
+            <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${iconColor}`} />
+          </div>
+          <div className="ml-3 sm:ml-4">
+            <p className="text-xs sm:text-sm font-medium text-gray-600">{title}</p>
+            {loading ? (
+              <div className="flex items-center space-x-2">
+                <Loader size="sm" />
+                <span className="text-sm text-gray-400">Loading...</span>
+              </div>
+            ) : (
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function AdminDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(true)
   const [stats, setStats] = useState<any>(null)
+  const [statsError, setStatsError] = useState(false)
 
   useEffect(() => {
     // Early return for unauthenticated users
@@ -52,32 +95,19 @@ export default function AdminDashboard() {
     if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
       fetchStats()
     }
+  }, [status, session, router])
 
-    // Aggressive failsafe: Stop loading after 6 seconds to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn('Admin dashboard loading timeout - stopping loader')
-        setLoading(false)
-        setStats({
-          totalUsers: 0,
-          activeSessions: 0,
-          totalCourses: 0,
-          pendingEnrollments: 0
-        })
-      }
-    }, 6000)
-
-    return () => clearTimeout(timeout)
-  }, [status, session, router, loading])
-
-  const fetchStats = async () => {
+  const fetchStats = async (retryCount = 0) => {
     try {
-      // Add timeout to fetch request
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000)
       
       const response = await fetch('/api/admin/stats', {
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       })
       
       clearTimeout(timeoutId)
@@ -90,52 +120,49 @@ export default function AdminDashboard() {
           totalCourses: 0,
           pendingEnrollments: 0
         })
+        setStatsError(false)
       } else {
         console.error('Failed to fetch stats:', response.status)
-        setStats({
-          totalUsers: 0,
-          activeSessions: 0,
-          totalCourses: 0,
-          pendingEnrollments: 0
-        })
+        setStatsError(true)
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.warn('Stats fetch timeout')
+        // Try once more on timeout for mobile users
+        if (retryCount === 0) {
+          console.log('Retrying stats fetch...')
+          setTimeout(() => fetchStats(1), 1000)
+          return
+        }
       } else {
         console.error('Error fetching stats:', error)
       }
-      setStats({
-        totalUsers: 0,
-        activeSessions: 0,
-        totalCourses: 0,
-        pendingEnrollments: 0
-      })
+      setStatsError(true)
     } finally {
-      setLoading(false)
+      // Only stop loading on final attempt
+      if (retryCount > 0) {
+        setLoadingStats(false)
+      }
+    }
+    
+    // Stop loading after first attempt if no retry
+    if (retryCount === 0) {
+      setTimeout(() => setLoadingStats(false), 100)
     }
   }
 
+  // Show loading only for authentication, not for data
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mx-4">
-          <Loader size="lg" text="Loading admin dashboard..." />
+          <Loader size="lg" text="Authenticating..." />
         </div>
       </div>
     )
   }
 
-  if (status === 'authenticated' && loading && !stats) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mx-4">
-          <Loader size="lg" text="Loading dashboard data..." />
-        </div>
-      </div>
-    )
-  }
-
+  // Redirect logic - don't show anything during redirect
   if (!session || session.user.role !== 'ADMIN') {
     return null
   }
@@ -152,65 +179,77 @@ export default function AdminDashboard() {
           <p className="text-gray-600">
             Welcome back, {session.user.name}. Here's your platform overview.
           </p>
+          {statsError && (
+            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-sm text-yellow-800">
+                ⚠️ Network issue - Unable to load latest stats
+              </p>
+            </div>
+          )}
+          {loadingStats && (
+            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-blue-800">
+                  Loading dashboard statistics...
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setLoadingStats(false)
+                    setStats({
+                      totalUsers: 0,
+                      activeSessions: 0,
+                      totalCourses: 0,
+                      pendingEnrollments: 0
+                    })
+                  }}
+                >
+                  Skip Loading
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/admin/users')}>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-                </div>
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
-                </div>
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active Sessions</p>
-                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.activeSessions || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Database className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
-                </div>
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Courses</p>
-                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.totalCourses || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
-                </div>
-                <div className="ml-3 sm:ml-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Enrollments</p>
-                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.pendingEnrollments || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatsCard
+            icon={Users}
+            title="Total Users"
+            value={stats?.totalUsers || 0}
+            loading={loadingStats}
+            bgColor="bg-blue-100"
+            iconColor="text-blue-600"
+            onClick={() => router.push('/admin/users')}
+          />
+          
+          <StatsCard
+            icon={TrendingUp}
+            title="Active Sessions"
+            value={stats?.activeSessions || 0}
+            loading={loadingStats}
+            bgColor="bg-green-100"
+            iconColor="text-green-600"
+          />
+          
+          <StatsCard
+            icon={Database}
+            title="Total Courses"
+            value={stats?.totalCourses || 0}
+            loading={loadingStats}
+            bgColor="bg-purple-100"
+            iconColor="text-purple-600"
+          />
+          
+          <StatsCard
+            icon={Clock}
+            title="Pending Enrollments"
+            value={stats?.pendingEnrollments || 0}
+            loading={loadingStats}
+            bgColor="bg-yellow-100"
+            iconColor="text-yellow-600"
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
