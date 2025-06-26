@@ -7,11 +7,24 @@ A platform to make you interview ready. Built with Next.js, TypeScript, Mongoose
 - 🔐 **Secure Authentication** - JWT-based authentication with NextAuth.js
 - 📧 **Email Verification** - OTP-based email verification
 - 👥 **Role-Based Access** - Support for User, Agent, and Admin roles
+- 📄 **Resume Builder** - Create modern, ATS-friendly resumes with PDF download
 - 🎨 **Modern UI** - Clean, responsive design with Tailwind CSS
 - 📱 **Mobile Responsive** - Optimized for all device sizes
 - 🔒 **Password Security** - Strong password requirements and hashing
 - 🚀 **Fast Development** - Built with Next.js 15 and TypeScript
 - 🗃️ **MongoDB Integration** - Native MongoDB support with Mongoose ODM
+
+## Resume Builder Features
+
+- **Complete CRUD Operations** - Create, Read, Update, Delete resumes
+- **Dynamic Sections** - Add multiple education, experience, skills, and projects
+- **Auto-Experience Calculation** - Automatically calculates total experience in years
+- **Modern ATS-Friendly Design** - Professional layout optimized for Applicant Tracking Systems
+- **PDF Download** - Print-to-PDF functionality for easy sharing
+- **Responsive Design** - Works seamlessly on desktop and mobile devices
+- **Real-time Preview** - Instant preview of your resume as you build it
+- **Form Validation** - Comprehensive validation to ensure data quality
+- **User Authentication** - Secure, user-specific resume storage
 
 ## Tech Stack
 

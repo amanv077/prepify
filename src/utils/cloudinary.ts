@@ -57,7 +57,7 @@ export async function uploadImageToCloudinary(
 
   // Check required environment variables
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-  let uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 
   if (!cloudName) {
     throw new CloudinaryUploadError('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME environment variable is not set')

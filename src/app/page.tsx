@@ -33,7 +33,8 @@ import {
   Shield,
   Globe,
   ChevronRight,
-  PlayCircle
+  PlayCircle,
+  FileText
 } from 'lucide-react'
 
 export default function Home() {
@@ -289,6 +290,20 @@ export default function Home() {
               <CardContent className="text-center">
                 <CardDescription className="text-base text-gray-700">
                   Monitor your improvement with detailed analytics, performance metrics, and personalized learning paths.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
+                  <FileText className="h-8 w-8 text-orange-600" />
+                </div>
+                <CardTitle className="text-xl font-semibold text-gray-900">Resume Builder</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <CardDescription className="text-base text-gray-700">
+                  Create professional, ATS-friendly resumes with our modern resume builder. Download as PDF instantly.
                 </CardDescription>
               </CardContent>
             </Card>

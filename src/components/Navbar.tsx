@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ButtonLoader } from '@/components/ui/loader'
-import { Menu, X, User, LogOut, ChevronDown, Home, BookOpen, Trophy, DollarSign, MessageCircle, Settings } from 'lucide-react'
+import { Menu, X, User, LogOut, ChevronDown, Home, BookOpen, Trophy, DollarSign, MessageCircle, Settings, FileText } from 'lucide-react'
 import { showToast } from '@/components/ui/toaster'
 import Loader from '@/components/ui/loader'
 
@@ -69,6 +69,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/about', label: 'About', icon: BookOpen },
     { href: '/programs', label: 'Programs', icon: BookOpen },
+    { href: '/resume', label: 'Resume Builder', icon: FileText },
     { href: '/success-stories', label: 'Success Stories', icon: Trophy },
     { href: '/pricing', label: 'Pricing', icon: DollarSign },
     { href: '/contact', label: 'Contact', icon: MessageCircle },
