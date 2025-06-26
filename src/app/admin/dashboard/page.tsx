@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import Loader, { FullPageLoader } from '@/components/ui/loader'
+import Loader from '@/components/ui/loader'
 import { 
   Users, 
   TrendingUp, 
@@ -73,59 +73,36 @@ function StatsCard({
 export default function AdminDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [stats, setStats] = useState<any>({
+    totalUsers: 0,
+    activeSessions: 0,
+    totalCourses: 0,
+    pendingEnrollments: 0
+  })
   const [loadingStats, setLoadingStats] = useState(true)
-  const [stats, setStats] = useState<any>(null)
-  const [statsError, setStatsError] = useState(false)
 
   useEffect(() => {
-    // Early return for unauthenticated users
+    // Handle authentication and redirects
     if (status === 'unauthenticated') {
       router.push('/login')
       return
     }
 
-    // Redirect non-admin users immediately when authentication is confirmed
     if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
       const redirectPath = session?.user?.role === 'AGENT' ? '/agent/dashboard' : '/dashboard'
       router.push(redirectPath)
       return
     }
 
-    // Only fetch stats for authenticated admin users
+    // Fetch stats for admin users
     if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
       fetchStats()
     }
-
-    // Safety fallback: Always stop loading after 15 seconds to prevent infinite loaders
-    const safetyTimeout = setTimeout(() => {
-      if (loadingStats) {
-        console.warn('Safety timeout: Forcing loading to stop after 15 seconds')
-        setLoadingStats(false)
-        setStatsError(true)
-      }
-    }, 15000)
-
-    return () => clearTimeout(safetyTimeout)
   }, [status, session, router])
 
-  const fetchStats = async (retryCount = 0) => {
+  const fetchStats = async () => {
     try {
-      const controller = new AbortController()
-      // Use shorter timeout on mobile devices (3s vs 5s)
-      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
-      const timeoutDuration = isMobile ? 3000 : 5000
-      const timeoutId = setTimeout(() => controller.abort(), timeoutDuration)
-      
-      const response = await fetch('/api/admin/stats', {
-        signal: controller.signal,
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      })
-      
-      clearTimeout(timeoutId)
-      
+      const response = await fetch('/api/admin/stats')
       if (response.ok) {
         const data = await response.json()
         setStats(data.stats || {
@@ -134,43 +111,17 @@ export default function AdminDashboard() {
           totalCourses: 0,
           pendingEnrollments: 0
         })
-        setStatsError(false)
-      } else {
-        console.error('Failed to fetch stats:', response.status)
-        setStatsError(true)
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.warn('Stats fetch timeout')
-        // Try once more on timeout for mobile users
-        if (retryCount === 0) {
-          console.log('Retrying stats fetch...')
-          setTimeout(() => fetchStats(1), 1000)
-          return // Important: return here to avoid the finally block
-        }
-      } else {
-        console.error('Error fetching stats:', error)
-      }
-      setStatsError(true)
+      console.error('Error fetching stats:', error)
+      // Keep default values on error
     } finally {
-      // Always stop loading after any attempt completes
       setLoadingStats(false)
     }
   }
 
-  // Show loading only for authentication, not for data
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mx-4">
-          <Loader size="lg" text="Authenticating..." />
-        </div>
-      </div>
-    )
-  }
-
-  // Redirect logic - don't show anything during redirect
-  if (!session || session.user.role !== 'ADMIN') {
+  // Don't render anything during authentication or for non-admin users
+  if (status === 'loading' || !session || session.user.role !== 'ADMIN') {
     return null
   }
 
@@ -186,37 +137,6 @@ export default function AdminDashboard() {
           <p className="text-gray-600">
             Welcome back, {session.user.name}. Here's your platform overview.
           </p>
-          {statsError && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
-              <p className="text-sm text-yellow-800">
-                ⚠️ Network issue - Unable to load latest stats
-              </p>
-            </div>
-          )}
-          {loadingStats && (
-            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-blue-800">
-                  Loading dashboard statistics...
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setLoadingStats(false)
-                    setStats({
-                      totalUsers: 0,
-                      activeSessions: 0,
-                      totalCourses: 0,
-                      pendingEnrollments: 0
-                    })
-                  }}
-                >
-                  Skip Loading
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Stats Grid */}
