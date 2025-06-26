@@ -19,6 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Prepify - Interview Preparation Platform",
   description: "A platform to make you interview ready. Practice, prepare, and ace your interviews with comprehensive preparation tools.",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({

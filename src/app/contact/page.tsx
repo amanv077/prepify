@@ -1,26 +1,57 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { ButtonLoader } from '@/components/ui/loader'
 import { showToast } from '@/components/ui/toaster'
-import { Mail, Phone, MapPin, Clock, MessageSquare, Users, Building, Headphones } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, MessageSquare, Building } from "lucide-react"
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    company: '',
+    subject: '',
+    message: '',
+    newsletter: false
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }))
+  }
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
-      // Simulate form submission
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
-      showToast.success('Message sent successfully! We\'ll get back to you soon.')
-      
-      // Reset form
-      const form = e.target as HTMLFormElement
-      form.reset()
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      if (response.ok) {
+        showToast.success('Message sent successfully! We\'ll get back to you soon.')
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          company: '',
+          subject: '',
+          message: '',
+          newsletter: false
+        })
+      } else {
+        throw new Error('Failed to send message')
+      }
     } catch (error) {
       showToast.error('Failed to send message. Please try again.')
     } finally {
@@ -40,46 +71,46 @@ export default function ContactPage() {
       icon: <Phone className="h-6 w-6 text-blue-600" />,
       title: "Phone Support",
       description: "Speak directly with our team",
-      contact: "+1 (555) 123-4567",
-      availability: "Mon-Fri, 9 AM - 6 PM PST"
+      contact: "+91 755 123 4567",
+      availability: "Mon-Fri, 9 AM - 6 PM IST"
     },
     {
       icon: <MessageSquare className="h-6 w-6 text-blue-600" />,
       title: "Live Chat",
       description: "Instant help when you need it",
       contact: "Available on platform",
-      availability: "Mon-Fri, 8 AM - 8 PM PST"
+      availability: "Mon-Fri, 8 AM - 8 PM IST"
     },
     {
       icon: <Building className="h-6 w-6 text-blue-600" />,
       title: "Enterprise Sales",
       description: "Custom solutions for your company",
       contact: "enterprise@prepify.com",
-      availability: "Business hours worldwide"
+      availability: "Business hours India"
     }
-  ];
+  ]
 
   const offices = [
     {
-      city: "San Francisco",
-      address: "123 Innovation Drive, Suite 500",
-      zipcode: "San Francisco, CA 94105",
-      phone: "+1 (415) 555-0123",
+      city: "Bhopal",
+      address: "Zone no 1, 151, Near City Bank, Zone-I, Maharana Pratap Nagar",
+      zipcode: "Bhopal, Madhya Pradesh 462011",
+      phone: "+91 755 123 4567",
       primary: true
     },
     {
-      city: "New York",
+      city: "Mumbai",
       address: "456 Business Avenue, Floor 12",
-      zipcode: "New York, NY 10001",
-      phone: "+1 (212) 555-0456"
+      zipcode: "Mumbai, Maharashtra 400001",
+      phone: "+91 22 555 0456"
     },
     {
-      city: "London",
+      city: "Bangalore",
       address: "789 Tech Street, Unit 8",
-      zipcode: "London EC1A 1BB, UK",
-      phone: "+44 20 7123 4567"
+      zipcode: "Bangalore, Karnataka 560001",
+      phone: "+91 80 7123 4567"
     }
-  ];
+  ]
 
   const departments = [
     {
@@ -107,7 +138,7 @@ export default function ContactPage() {
       email: "legal@prepify.com",
       description: "Privacy, terms of service, compliance matters"
     }
-  ];
+  ]
 
   return (
     <div className="min-h-screen bg-white">
@@ -118,7 +149,7 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Have questions about Prepify? Need help with your interview preparation? Want to partner with us? We're here to help you succeed.
+            Have questions about Prepify? Need help with your interview preparation? Want to explore career opportunities? We're here to help you succeed in your professional journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
@@ -171,7 +202,8 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <Card className="border-gray-200">            <CardContent className="p-8">
+          <Card className="border-gray-200">
+            <CardContent className="p-8">
               <form onSubmit={handleFormSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
@@ -182,6 +214,8 @@ export default function ContactPage() {
                       type="text"
                       id="firstName"
                       name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -194,6 +228,8 @@ export default function ContactPage() {
                       type="text"
                       id="lastName"
                       name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -209,6 +245,8 @@ export default function ContactPage() {
                       type="email"
                       id="email"
                       name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
@@ -221,6 +259,8 @@ export default function ContactPage() {
                       type="text"
                       id="company"
                       name="company"
+                      value={formData.company}
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -233,6 +273,8 @@ export default function ContactPage() {
                   <select
                     id="subject"
                     name="subject"
+                    value={formData.subject}
+                    onChange={handleInputChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
@@ -254,6 +296,8 @@ export default function ContactPage() {
                   <textarea
                     id="message"
                     name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
                     rows={6}
                     required
                     placeholder="Tell us how we can help you..."
@@ -266,6 +310,8 @@ export default function ContactPage() {
                     type="checkbox"
                     id="newsletter"
                     name="newsletter"
+                    checked={formData.newsletter}
+                    onChange={handleInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="newsletter" className="ml-2 text-sm text-gray-700">
@@ -356,7 +402,7 @@ export default function ContactPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-gray-500" />
-                      <p className="text-gray-600">Mon-Fri, 9 AM - 6 PM</p>
+                      <p className="text-gray-600">Mon-Fri, 9 AM - 6 PM IST</p>
                     </div>
                   </div>
                 </CardContent>

@@ -7,14 +7,14 @@ export default function CareersPage() {
     {
       title: "Senior AI Engineer",
       department: "Engineering",
-      location: "Remote / San Francisco",
+      location: "Remote / Bhopal",
       type: "Full-time",
       description: "Lead the development of our AI-powered interview preparation algorithms and machine learning models."
     },
     {
       title: "Product Manager",
       department: "Product",
-      location: "Remote / New York",
+      location: "Remote / Mumbai",
       type: "Full-time",
       description: "Drive product strategy and roadmap for our interview preparation platform, working closely with enterprise clients."
     },
