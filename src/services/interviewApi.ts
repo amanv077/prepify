@@ -41,6 +41,34 @@ export class InterviewApiService {
   }
 
   /**
+   * Generate bulk questions for a level (optimized approach)
+   */
+  static async generateBulkQuestions(interviewId: string, currentLevel: number): Promise<{
+    questions: Question[]
+    session: InterviewSession
+    currentLevel: number
+    totalQuestions: number
+  }> {
+    const response = await fetch('/api/interview/bulk-questions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        interviewId,
+        currentLevel,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      throw new Error(`Failed to generate bulk questions: ${errorData}`)
+    }
+
+    return response.json()
+  }
+
+  /**
    * Process batch feedback for all questions in a level
    */
   static async processBatchFeedback(
@@ -81,5 +109,20 @@ export class InterviewApiService {
     }
 
     return response.json()
+  }
+
+  /**
+   * Submit answer for a question (local storage, no API call)
+   */
+  static submitAnswerLocally(
+    questions: Question[], 
+    questionId: string, 
+    answer: string
+  ): Question[] {
+    return questions.map(q => 
+      q._id === questionId 
+        ? { ...q, answer, answeredAt: new Date() }
+        : q
+    )
   }
 }

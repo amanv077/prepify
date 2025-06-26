@@ -168,6 +168,48 @@ JSON format:
 Only JSON response.`
   }
 
+  private generateBulkQuestionsPrompt(context: InterviewContext, count: number): string {
+    const difficultyDesc = this.getDifficultyDescription(context.difficulty)
+    const skillsText = context.skills.slice(0, 3).join(', ')
+    const prevQuestionsText = context.previousQuestions.length > 0 
+      ? `Avoid: ${context.previousQuestions.slice(-5).join('; ')}` 
+      : ''
+
+    const levelFocus = {
+      1: 'Basic concepts and fundamentals',
+      2: 'Practical application and implementation',
+      3: 'Problem-solving and troubleshooting',
+      4: 'System design and architecture',
+      5: 'Advanced optimization and best practices'
+    }
+
+    return `Interview for ${context.jobTitle} at ${context.company}. Level ${context.currentLevel}/5 (${difficultyDesc}).
+Skills: ${skillsText}. Experience: ${context.experience}.
+${prevQuestionsText}
+
+Generate exactly ${count} UNIQUE ${difficultyDesc} questions for level ${context.currentLevel}.
+Focus: ${levelFocus[context.currentLevel as keyof typeof levelFocus] || 'General interview questions'}
+
+Questions should:
+- Be progressively challenging within the level
+- Cover different aspects of the role
+- Avoid repetition
+- Be specific to ${difficultyDesc} level
+
+Return JSON array:
+{
+  "questions": [
+    {"question": "Question 1 text here", "questionId": "q1_${Date.now()}"},
+    {"question": "Question 2 text here", "questionId": "q2_${Date.now()}"},
+    {"question": "Question 3 text here", "questionId": "q3_${Date.now()}"},
+    {"question": "Question 4 text here", "questionId": "q4_${Date.now()}"},
+    {"question": "Question 5 text here", "questionId": "q5_${Date.now()}"}
+  ]
+}
+
+Only JSON response, no additional text.`
+  }
+
   async generateQuestion(context: InterviewContext): Promise<QuestionResponse> {
     try {
       const prompt = this.generateQuestionPrompt(context)
@@ -399,6 +441,100 @@ Only JSON response.`
     } catch (error) {
       console.error('Error generating batch feedback:', error)
       throw new Error('Failed to generate batch feedback')
+    }
+  }
+
+  async generateBulkQuestions(context: InterviewContext, count: number = 5): Promise<{questions: QuestionResponse[]}> {
+    try {
+      const prompt = this.generateBulkQuestionsPrompt(context, count)
+      const result = await this.model.generateContent(prompt)
+      const response = await result.response
+      const text = response.text()
+      
+      // Parse JSON response
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        throw new Error('Invalid response format from Gemini')
+      }
+      
+      const parsed = JSON.parse(jsonMatch[0])
+      
+      // Validate and ensure we have the right number of questions
+      if (!parsed.questions || !Array.isArray(parsed.questions) || parsed.questions.length !== count) {
+        console.warn('Gemini returned unexpected number of questions, generating fallback')
+        return this.getFallbackBulkQuestions(context, count)
+      }
+      
+      // Ensure each question has a unique ID
+      const questions = parsed.questions.map((q: any, index: number) => ({
+        question: q.question || `Fallback question ${index + 1}`,
+        questionId: q.questionId || `q${context.currentLevel}_${index}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      }))
+      
+      return { questions }
+    } catch (error: any) {
+      console.error('Error generating bulk questions:', error)
+      
+      // Check if it's a rate limiting error
+      if (error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate limit')) {
+        return this.getFallbackBulkQuestions(context, count)
+      }
+      
+      // For any other error, return fallback questions
+      return this.getFallbackBulkQuestions(context, count)
+    }
+  }
+
+  private getFallbackBulkQuestions(context: InterviewContext, count: number): {questions: QuestionResponse[]} {
+    const difficultyDesc = this.getDifficultyDescription(context.difficulty)
+    const jobTitle = context.jobTitle.toLowerCase()
+    
+    const fallbackQuestions = {
+      1: [ // Basic concepts
+        `What is ${jobTitle.includes('developer') ? 'object-oriented programming' : 'your understanding of the core concepts'} in your field?`,
+        `Explain the difference between ${jobTitle.includes('developer') ? 'var, let, and const' : 'fundamental concepts'} in your domain.`,
+        `What are the basic principles you follow in your daily work?`,
+        `How do you ensure code quality in your projects?`,
+        `What tools do you use for version control and why?`
+      ],
+      2: [ // Practical application
+        `How would you implement a simple ${jobTitle.includes('developer') ? 'authentication system' : 'solution for a common problem'}?`,
+        `Walk me through your debugging process when something goes wrong.`,
+        `How do you handle error management in your applications?`,
+        `Describe your testing approach for a new feature.`,
+        `How do you optimize performance in your applications?`
+      ],
+      3: [ // Problem-solving
+        `Design a solution for handling high traffic on a web application.`,
+        `How would you troubleshoot a system that suddenly became slow?`,
+        `Explain how you would refactor legacy code safely.`,
+        `How do you approach solving a problem you've never encountered before?`,
+        `Describe a challenging technical problem you've solved recently.`
+      ],
+      4: [ // System design
+        `Design a scalable architecture for a ${jobTitle.includes('developer') ? 'social media platform' : 'large-scale system'}.`,
+        `How would you design a microservices architecture?`,
+        `Explain your approach to database design for a complex application.`,
+        `How do you ensure system reliability and fault tolerance?`,
+        `Design a caching strategy for a high-traffic application.`
+      ],
+      5: [ // Advanced optimization
+        `How would you optimize a system for extreme scale?`,
+        `Explain advanced security considerations in system design.`,
+        `How do you approach performance monitoring and alerting?`,
+        `Design a disaster recovery plan for a critical system.`,
+        `How would you implement real-time data processing at scale?`
+      ]
+    }
+    
+    const levelQuestions = fallbackQuestions[context.currentLevel as keyof typeof fallbackQuestions] || fallbackQuestions[1]
+    const selectedQuestions = levelQuestions.slice(0, count)
+    
+    return {
+      questions: selectedQuestions.map((q, index) => ({
+        question: q,
+        questionId: `fallback_q${context.currentLevel}_${index}_${Date.now()}`
+      }))
     }
   }
 }

@@ -119,16 +119,59 @@ export function useInterviewState(interviewId: string | null) {
       } else {
         // Continue from where left off
         console.log('Continuing from where left off')
-        await generateNextQuestion(interview)
+        const nextQuestionIndex = levelData.questions.findIndex(q => !q.answer || q.answer.trim() === '')
+        if (nextQuestionIndex >= 0) {
+          setCurrentQuestion(levelData.questions[nextQuestionIndex])
+          setCurrentLevelData(prev => ({
+            ...prev,
+            currentQuestionIndex: nextQuestionIndex
+          }))
+          setInterviewPhase('question')
+        }
       }
     } else {
-      // Generate first question for current level
-      await generateNextQuestion(interview)
+      // Generate bulk questions for current level (optimized approach)
+      await generateBulkQuestions(interview)
+    }
+  }
+
+  const generateBulkQuestions = async (interviewSession: InterviewSession) => {
+    console.log('Generating bulk questions for level:', currentLevelData.levelNumber)
+    setLoadingNextQuestion(true)
+    
+    try {
+      const data = await InterviewApiService.generateBulkQuestions(
+        interviewId!,
+        currentLevelData.levelNumber
+      )
+      
+      // Set all questions for the level
+      setCurrentLevelData(prev => ({
+        ...prev,
+        questions: data.questions,
+        currentQuestionIndex: 0
+      }))
+      
+      // Set first question as current
+      if (data.questions.length > 0) {
+        setCurrentQuestion(data.questions[0])
+        setAnswer('')
+        setInterviewPhase('question')
+      }
+      
+      setInterview(data.session)
+      
+    } catch (error) {
+      console.error('Error generating bulk questions:', error)
+      setError('Failed to generate questions. Please try again.')
+    } finally {
+      setLoadingNextQuestion(false)
     }
   }
 
   const generateNextQuestion = async (interviewSession: InterviewSession) => {
-    console.log('Generating next question for level:', currentLevelData.levelNumber)
+    // This method is now only used for fallback - prefer generateBulkQuestions
+    console.log('Fallback: Generating single question for level:', currentLevelData.levelNumber)
     setLoadingNextQuestion(true)
     
     try {
@@ -151,6 +194,7 @@ export function useInterviewState(interviewId: string | null) {
       
     } catch (error) {
       console.error('Error generating question:', error)
+      setError('Failed to generate question. Please try again.')
     } finally {
       setLoadingNextQuestion(false)
     }
@@ -161,52 +205,58 @@ export function useInterviewState(interviewId: string | null) {
 
     setSubmittingAnswer(true)
     try {
-      // Update current question with answer
-      const updatedQuestion = {
-        ...currentQuestion,
-        answer: answer.trim(),
-        answeredAt: new Date()
-      }
+      // Update questions locally (no API call)
+      const updatedQuestions = InterviewApiService.submitAnswerLocally(
+        currentLevelData.questions,
+        currentQuestion._id,
+        answer.trim()
+      )
       
-      // Update questions array
-      const currentQuestionIndex = currentLevelData.questions.findIndex(q => q._id === currentQuestion._id)
-      setCurrentLevelData(prev => {
-        const updatedQuestions = [...prev.questions]
-        if (currentQuestionIndex >= 0) {
-          updatedQuestions[currentQuestionIndex] = updatedQuestion
-        }
-        return {
-          ...prev,
-          questions: updatedQuestions
-        }
-      })
+      // Update local state
+      setCurrentLevelData(prev => ({
+        ...prev,
+        questions: updatedQuestions
+      }))
       
-      // Check if this was the 5th question
-      if (currentLevelData.questions.length >= 4) { // 4 because we haven't added this one to the count yet
-        await processBatchFeedback()
+      // Check if we've answered all 5 questions
+      const answeredCount = updatedQuestions.filter(q => q.answer && q.answer.trim() !== '').length
+      
+      if (answeredCount >= 5) {
+        // All questions answered, process batch feedback
+        await processBatchFeedback(updatedQuestions)
       } else {
         // Move to next question
-        setAnswer('')
-        setCurrentQuestion(null)
-        if (interview) {
-          await generateNextQuestion(interview)
+        const nextQuestionIndex = currentLevelData.currentQuestionIndex + 1
+        if (nextQuestionIndex < updatedQuestions.length) {
+          setCurrentQuestion(updatedQuestions[nextQuestionIndex])
+          setCurrentLevelData(prev => ({
+            ...prev,
+            currentQuestionIndex: nextQuestionIndex
+          }))
+          setAnswer('')
+        } else {
+          // This shouldn't happen with bulk questions, but handle gracefully
+          console.warn('Reached end of questions unexpectedly')
+          await processBatchFeedback(updatedQuestions)
         }
       }
     } catch (error) {
       console.error('Error submitting answer:', error)
+      setError('Failed to submit answer. Please try again.')
     } finally {
       setSubmittingAnswer(false)
     }
   }
 
-  const processBatchFeedback = async () => {
-    if (!interview || !currentLevelData.questions.length) return
+  const processBatchFeedback = async (questionsToProcess?: Question[]) => {
+    const questionsForFeedback = questionsToProcess || currentLevelData.questions
+    if (!interview || !questionsForFeedback.length) return
 
     console.log('Processing batch feedback for level:', currentLevelData.levelNumber)
     setLoadingNextQuestion(true)
     
     try {
-      const questionsAndAnswers = currentLevelData.questions.map(q => ({
+      const questionsAndAnswers = questionsForFeedback.map(q => ({
         question: q.questionText,
         answer: q.answer || ''
       }))
@@ -218,7 +268,7 @@ export function useInterviewState(interviewId: string | null) {
       )
       
       // Update questions with feedback
-      const updatedQuestions = currentLevelData.questions.map((q, index) => {
+      const updatedQuestions = questionsForFeedback.map((q, index) => {
         const feedbackData = data.feedback[index]
         if (feedbackData) {
           return {
@@ -284,7 +334,7 @@ export function useInterviewState(interviewId: string | null) {
     }
     setInterview(updatedInterview)
     
-    await generateNextQuestion(updatedInterview)
+    await generateBulkQuestions(updatedInterview)
   }
 
   const finishInterview = () => {
@@ -317,6 +367,7 @@ export function useInterviewState(interviewId: string | null) {
     setAnswer,
     submitAnswer,
     generateNextQuestion,
+    generateBulkQuestions,
     processBatchFeedback,
     proceedToNextLevel,
     finishInterview,
