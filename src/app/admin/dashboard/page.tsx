@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FullPageLoader } from '@/components/ui/loader'
+import Loader, { FullPageLoader } from '@/components/ui/loader'
 import { 
   Users, 
   TrendingUp, 
@@ -35,23 +35,25 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null)
 
   useEffect(() => {
+    // Early return for unauthenticated users
     if (status === 'unauthenticated') {
       router.push('/login')
       return
     }
 
+    // Redirect non-admin users immediately when authentication is confirmed
     if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
-      // Redirect non-admin users to their appropriate dashboard
       const redirectPath = session?.user?.role === 'AGENT' ? '/agent/dashboard' : '/dashboard'
       router.push(redirectPath)
       return
     }
 
-    if (status === 'authenticated') {
+    // Only fetch stats for authenticated admin users
+    if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
       fetchStats()
     }
 
-    // Failsafe: Stop loading after 10 seconds to prevent infinite loading
+    // Aggressive failsafe: Stop loading after 6 seconds to prevent infinite loading
     const timeout = setTimeout(() => {
       if (loading) {
         console.warn('Admin dashboard loading timeout - stopping loader')
@@ -63,20 +65,33 @@ export default function AdminDashboard() {
           pendingEnrollments: 0
         })
       }
-    }, 10000)
+    }, 6000)
 
     return () => clearTimeout(timeout)
   }, [status, session, router, loading])
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats')
+      // Add timeout to fetch request
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      
+      const response = await fetch('/api/admin/stats', {
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      
       if (response.ok) {
         const data = await response.json()
-        setStats(data.stats)
+        setStats(data.stats || {
+          totalUsers: 0,
+          activeSessions: 0,
+          totalCourses: 0,
+          pendingEnrollments: 0
+        })
       } else {
         console.error('Failed to fetch stats:', response.status)
-        // Set default stats to prevent loading indefinitely
         setStats({
           totalUsers: 0,
           activeSessions: 0,
@@ -85,8 +100,11 @@ export default function AdminDashboard() {
         })
       }
     } catch (error) {
-      console.error('Error fetching stats:', error)
-      // Set default stats to prevent loading indefinitely
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.warn('Stats fetch timeout')
+      } else {
+        console.error('Error fetching stats:', error)
+      }
       setStats({
         totalUsers: 0,
         activeSessions: 0,
@@ -99,11 +117,23 @@ export default function AdminDashboard() {
   }
 
   if (status === 'loading') {
-    return <FullPageLoader text="Loading admin dashboard..." />
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mx-4">
+          <Loader size="lg" text="Loading admin dashboard..." />
+        </div>
+      </div>
+    )
   }
 
   if (status === 'authenticated' && loading && !stats) {
-    return <FullPageLoader text="Loading dashboard data..." />
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mx-4">
+          <Loader size="lg" text="Loading dashboard data..." />
+        </div>
+      </div>
+    )
   }
 
   if (!session || session.user.role !== 'ADMIN') {

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FullPageLoader } from '@/components/ui/loader'
+import Loader, { FullPageLoader } from '@/components/ui/loader'
 import { checkProfileCompletion, getNextProfileAction, type ProfileStatus } from '@/lib/profileUtils'
 import type { IUserProfile } from '@/models/UserProfile'
 import { 
@@ -33,7 +33,19 @@ export default function UserDashboard() {
     if (status === 'unauthenticated') {
       router.push('/login')
     }
-  }, [status, router])
+    
+    // Prevent infinite loading on mobile
+    const timeout = setTimeout(() => {
+      if (loadingProfile) {
+        console.warn('Dashboard loading timeout - stopping loader')
+        setLoadingProfile(false)
+        setProfile(null)
+        setProfileStatus(checkProfileCompletion(null))
+      }
+    }, 8000)
+
+    return () => clearTimeout(timeout)
+  }, [status, router, loadingProfile])
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -44,7 +56,12 @@ export default function UserDashboard() {
             const data = await response.json()
             setProfile(data.profile)
             setProfileStatus(checkProfileCompletion(data.profile))
+          } else if (response.status === 404) {
+            // Profile doesn't exist yet - this is normal for new users
+            setProfile(null)
+            setProfileStatus(checkProfileCompletion(null))
           } else {
+            console.error('Error fetching profile:', response.status)
             setProfile(null)
             setProfileStatus(checkProfileCompletion(null))
           }
@@ -55,16 +72,27 @@ export default function UserDashboard() {
         } finally {
           setLoadingProfile(false)
         }
+      } else {
+        // No session user email, stop loading
+        setLoadingProfile(false)
       }
     }
 
     if (status === 'authenticated') {
       fetchProfile()
+    } else if (status === 'unauthenticated') {
+      setLoadingProfile(false)
     }
   }, [session, status])
 
   if (status === 'loading' || loadingProfile) {
-    return <FullPageLoader text="Loading your dashboard..." />
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mx-4">
+          <Loader size="lg" text="Loading your dashboard..." />
+        </div>
+      </div>
+    )
   }
 
   if (!session) {
