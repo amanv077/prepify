@@ -150,7 +150,10 @@ export default function UserDashboard() {
       if (session?.user?.email) {
         try {
           const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 5000)
+          // Use shorter timeout on mobile devices (3s vs 5s)
+          const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+          const timeoutDuration = isMobile ? 3000 : 5000
+          const timeoutId = setTimeout(() => controller.abort(), timeoutDuration)
           
           const response = await fetch('/api/profile', {
             signal: controller.signal,
@@ -183,22 +186,15 @@ export default function UserDashboard() {
             if (retryCount === 0) {
               console.log('Retrying profile fetch...')
               setTimeout(() => fetchProfile(1), 1000)
-              return
+              return // Important: return here to avoid the finally block
             }
           } else {
             console.error('Error fetching profile:', error)
           }
           setProfileError(true)
         } finally {
-          // Only stop loading on final attempt
-          if (retryCount > 0) {
-            setLoadingProfile(false)
-          }
-        }
-        
-        // Stop loading after first attempt if no retry
-        if (retryCount === 0) {
-          setTimeout(() => setLoadingProfile(false), 100)
+          // Always stop loading after any attempt completes
+          setLoadingProfile(false)
         }
       } else {
         // No session user email, stop loading
@@ -208,6 +204,17 @@ export default function UserDashboard() {
 
     if (status === 'authenticated') {
       fetchProfile()
+      
+      // Safety fallback: Always stop loading after 15 seconds to prevent infinite loaders
+      const safetyTimeout = setTimeout(() => {
+        if (loadingProfile) {
+          console.warn('Safety timeout: Forcing profile loading to stop after 15 seconds')
+          setLoadingProfile(false)
+          setProfileError(true)
+        }
+      }, 15000)
+
+      return () => clearTimeout(safetyTimeout)
     } else if (status === 'unauthenticated') {
       setLoadingProfile(false)
     }

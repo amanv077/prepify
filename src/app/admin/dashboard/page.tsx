@@ -95,12 +95,26 @@ export default function AdminDashboard() {
     if (status === 'authenticated' && session?.user?.role === 'ADMIN') {
       fetchStats()
     }
+
+    // Safety fallback: Always stop loading after 15 seconds to prevent infinite loaders
+    const safetyTimeout = setTimeout(() => {
+      if (loadingStats) {
+        console.warn('Safety timeout: Forcing loading to stop after 15 seconds')
+        setLoadingStats(false)
+        setStatsError(true)
+      }
+    }, 15000)
+
+    return () => clearTimeout(safetyTimeout)
   }, [status, session, router])
 
   const fetchStats = async (retryCount = 0) => {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      // Use shorter timeout on mobile devices (3s vs 5s)
+      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+      const timeoutDuration = isMobile ? 3000 : 5000
+      const timeoutId = setTimeout(() => controller.abort(), timeoutDuration)
       
       const response = await fetch('/api/admin/stats', {
         signal: controller.signal,
@@ -132,22 +146,15 @@ export default function AdminDashboard() {
         if (retryCount === 0) {
           console.log('Retrying stats fetch...')
           setTimeout(() => fetchStats(1), 1000)
-          return
+          return // Important: return here to avoid the finally block
         }
       } else {
         console.error('Error fetching stats:', error)
       }
       setStatsError(true)
     } finally {
-      // Only stop loading on final attempt
-      if (retryCount > 0) {
-        setLoadingStats(false)
-      }
-    }
-    
-    // Stop loading after first attempt if no retry
-    if (retryCount === 0) {
-      setTimeout(() => setLoadingStats(false), 100)
+      // Always stop loading after any attempt completes
+      setLoadingStats(false)
     }
   }
 
