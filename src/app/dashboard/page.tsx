@@ -424,6 +424,18 @@ export default function UserDashboard() {
                       </div>
                     </Link>
                   </Button>
+
+                  <Button asChild variant="outline" className="h-auto p-6 flex flex-col items-start space-y-2">
+                    <Link href="/programs">
+                      <GraduationCap className="h-8 w-8 text-orange-600" />
+                      <div className="text-left">
+                        <h3 className="font-semibold">Enroll in Programs</h3>
+                        <p className="text-sm text-gray-600">
+                          Explore and join training programs
+                        </p>
+                      </div>
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
